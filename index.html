@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PesquisAI — Pesquisa científica com integridade</title>
+<meta name="description" content="Ecossistema de agentes de IA para acelerar a pesquisa científica brasileira. Dados reais de IBGE, DataSUS, agrobr. Memória persistente via Obsidian. Formatação ABNT/UFV. Política zero-fabricação.">
+<meta name="author" content="Gustavo Bastos Braga · UFV">
+<meta name="version" content="0.5.1.9">
+<meta property="og:title" content="PesquisAI — Pesquisa científica com integridade">
+<meta property="og:description" content="Ecossistema de agentes de IA para pesquisa científica brasileira. Dados verificados, marcadores de evidência, memória persistente e formatação ABNT/UFV.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="logo.svg">
+<link rel="icon" type="image/svg+xml" href="ico.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & base ──────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  font-size:1.05rem;line-height:1.65;
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  position:relative;overflow-x:hidden;
+}
+
+/* ── Background pattern (research-themed) ────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(ellipse 50% 40% at 15% 20%, oklch(0.55 0.095 185 / 0.05), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 85% 70%, oklch(0.55 0.095 185 / 0.04), transparent 60%),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480' viewBox='0 0 480 480'%3E%3Cg fill='none' stroke='%23312f2a' stroke-width='0.6' opacity='0.06'%3E%3Ccircle cx='40' cy='60' r='2.5'/%3E%3Ccircle cx='140' cy='90' r='1.9'/%3E%3Ccircle cx='260' cy='70' r='2.5'/%3E%3Ccircle cx='380' cy='110' r='1.9'/%3E%3Cpath d='M40 60 L140 90 L260 70 L380 110' stroke-dasharray='2,5'/%3E%3Ccircle cx='70' cy='200' r='1.9'/%3E%3Ccircle cx='220' cy='220' r='2.5'/%3E%3Ccircle cx='350' cy='250' r='1.9'/%3E%3Cpath d='M70 200 L220 220 L350 250' stroke-dasharray='2,5'/%3E%3Ccircle cx='50' cy='340' r='2.5'/%3E%3Ccircle cx='190' cy='370' r='1.9'/%3E%3Ccircle cx='330' cy='350' r='2.5'/%3E%3Cpath d='M50 340 L190 370 L330 350' stroke-dasharray='2,5'/%3E%3Ctext x='100' y='150' font-family='serif' font-size='14' font-style='italic' fill='%23312f2a' opacity='0.5'%3Ey = ax + b%3C/text%3E%3Ctext x='290' y='190' font-family='serif' font-size='12' font-style='italic' fill='%23312f2a' opacity='0.5'%3EΣ(x-μ)²/n%3C/text%3E%3Ctext x='80' y='290' font-family='serif' font-size='11' font-style='italic' fill='%23312f2a' opacity='0.5'%3Ep < 0.05%3C/text%3E%3Ctext x='280' y='320' font-family='serif' font-size='13' font-style='italic' fill='%23312f2a' opacity='0.5'%3En=38%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:no-repeat,no-repeat,repeat;
+}
+
+/* ── Tokens ────────────────────────────────────────────────── */
+:root{
+  --teal:oklch(0.5 0.09 185);
+  --teal-dark:oklch(0.32 0.07 185);
+  --teal-dim:oklch(0.5 0.09 185 / 0.1);
+  --teal-glow:oklch(0.55 0.1 185 / 0.25);
+  --amber:oklch(0.7 0.13 72);
+  --amber-dim:oklch(0.7 0.13 72 / 0.15);
+  --violet:oklch(0.55 0.12 300);
+  --violet-dim:oklch(0.55 0.12 300 / 0.12);
+  --bg:oklch(0.95 0.012 75);
+  --surface:oklch(0.99 0.004 70);
+  --ink:oklch(0.18 0.012 70);
+  --ink-muted:oklch(0.38 0.015 70);
+  --ink-soft:oklch(0.55 0.015 70);
+  --line:oklch(0 0 0 / 0.08);
+  --line-strong:oklch(0 0 0 / 0.14);
+  --hero-bg:oklch(0.16 0.012 65);
+  --hero-text:oklch(0.95 0.005 70);
+  --hero-muted:oklch(0.68 0.012 70);
+  --font-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Monaco,Consolas,monospace;
+  --space-xs:0.25rem;
+  --space-sm:0.5rem;
+  --space-md:1rem;
+  --space-lg:2rem;
+  --space-xl:4rem;
+  --space-2xl:6rem;
+  --space-3xl:8rem;
+  --radius:4px;
+  --radius-lg:8px;
+}
+
+/* ── Typography ────────────────────────────────────────────── */
+h1,h2,h3,h4{font-family:var(--font-display);line-height:1.15;text-wrap:balance;font-weight:400;letter-spacing:-0.015em;color:var(--ink)}
+h1{font-size:clamp(2.4rem,5vw+1rem,4.2rem);font-weight:300;letter-spacing:-0.025em}
+h2{font-size:clamp(rem,2.8vw+0.5rem,2.6rem);font-weight:400;letter-spacing:-0.02em}
+h3{font-size:clamp(1.1rem,1vw+0.5rem,1.35rem);font-weight:500;letter-spacing:-0.01em}
+p{max-width:65ch}
+em{font-style:italic;font-weight:inherit}
+.eyebrow{font-family:var(--font-sans);font-size:0.72rem;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal-dark);display:inline-flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';width:24px;height:1px;background:currentColor}
+.text-muted{color:var(--ink-muted)}
+code,pre{font-family:var(--font-mono);font-size:0.88rem}
+
+/* ── Container ─────────────────────────────────────────────── */
+.container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-lg);position:relative;z-index:1}
+.section-head{margin-bottom:var(--space-2xl);max-width:60ch}
+.section-head h2{margin-top:var(--space-md)}
+.section-head p{margin-top:var(--space-md);font-size:1.05rem;line-height:1.7}
+
+/* ── Top Bar (sticky) ─────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:oklch(0.99 0.004 70 / 0.85);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{display:flex;justify-content:space-between;align-items:center;padding:14px var(--space-lg);max-width:1200px;margin:0 auto;gap:var(--space-lg)}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:500;font-size:1.05rem;color:var(--ink);text-decoration:none}
+.topbar-brand img{width:24px;height:24px;display:block}
+.topbar-brand strong{font-weight:600}
+.topbar-brand em{font-style:normal;color:var(--teal-dark);font-weight:600}
+.topbar-nav{display:flex;gap:var(--space-md);align-items:center;flex-wrap:wrap}
+.topbar-link{font-family:var(--font-sans);font-size:0.82rem;color:var(--ink-muted);text-decoration:none;padding:6px 10px;border-radius:var(--radius);transition:color .15s,background .15s}
+.topbar-link:hover{color:var(--teal-dark);background:var(--teal-dim)}
+.topbar-cta{font-family:var(--font-sans);font-size:0.78rem;font-weight:600;padding:8px 14px;border-radius:var(--radius);background:var(--amber);color:var(--ink);text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;transition:transform .15s,box-shadow .15s}
+.topbar-cta:hover{transform:translateY(-1px);box-shadow:0 4px 16px oklch(0 0 0 / 0.15)}
+
+/* ── HERO ──────────────────────────────────────────────────── */
+.hero{
+  min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  background:var(--hero-bg);color:var(--hero-text);
+  padding:var(--space-3xl) 0 var(--space-2xl);
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 75% 15%, var(--teal-glow), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 90%, oklch(0.7 0.13 72 / 0.1), transparent 60%);
+  pointer-events:none;
+}
+.hero-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:var(--space-2xl);align-items:center;position:relative;z-index:1}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 14px;border-radius:999px;
+  background:oklch(0.55 0.1 185 / 0.12);
+  border:1px solid oklch(0.55 0.1 185 / 0.3);
+  font-family:var(--font-sans);
+  font-size:0.78rem;letter-spacing:0.04em;margin-bottom:var(--space-lg);
+  color:var(--teal);
+}
+.hero h1{color:var(--hero-text);margin-bottom:var(--space-md);max-width:14ch}
+.hero h1 em{font-style:italic;font-weight:300;color:oklch(0.75 0.12 185)}
+.hero-sub{
+  font-size:clamp(1.05rem,1vw+0.4rem,1.2rem);line-height:;
+  color:var(--hero-muted);margin-bottom:var(--space-xl);max-width:48ch;
+}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:var(--space-md)}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 28px;border-radius:var(--radius);
+  background:var(--amber);color:var(--ink);
+  font-family:var(--font-sans);font-size:0.9rem;font-weight:600;
+  border:none;cursor:pointer;transition:transform .15s,box-shadow .15s;
+  text-transform:uppercase;letter-spacing:0.06em;text-decoration:none;
+}
+.hero-cta:hover{transform:translateY(-1px);box-shadow:0 8px 28px oklch(0 0 0 / 0.25)}
+.hero-cta:active{transform:scale(0.98)}
+.hero-cta--ghost{
+  background:transparent;color:var(--hero-text);
+  border:1px solid oklch(1 0 0 / 0.25);
+}
+.hero-cta--ghost:hover{background:oklch(1 0 0 / 0.06);transform:translateY(-1px);box-shadow:none}
+.hero-trust{display:flex;flex-wrap:wrap;gap:var(--space-md) var(--space-lg);margin-top:var(--space-xl);font-family:var(--font-sans);font-size:0.82rem}
+.hero-trust-item{display:flex;align-items:center;gap:8px;color:var(--hero-muted)}
+.hero-trust-item svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.hero-viz{position:relative;max-width:480px;margin:0 auto;width:100%}
+.hero-viz svg{width:100%;height:100%;display:block}
+.hero-viz img.hero-logo-img{width:100%;height:auto;display:block;border-radius:16px}
+.viz-edge{stroke:oklch(0.55 0.1 185 / 0.35);stroke-width:1.2;fill:none}
+.viz-edge--output{stroke:oklch(0.7 0.13 72 / 0.5);stroke-dasharray:3,3;stroke-width:1.5}
+.viz-node-bg{fill:var(--hero-bg);stroke:oklch(0.55 0.1 185 / 0.5);stroke-width:1.5}
+.viz-node-bg--center{fill:oklch(0.55 0.1 185 / 0.15);stroke:oklch(0.7 0.12 185);stroke-width:2}
+.viz-node-bg--output{fill:oklch(0.7 0.13 72 / 0.12);stroke:oklch(0.7 0.13 72 / 0.6);stroke-width:1.5}
+.viz-node-text{font-family:var(--font-sans);font-size:10px;font-weight:500;fill:var(--hero-text);text-anchor:middle;dominant-baseline:central}
+.viz-node-text--center{font-size:13px;font-weight:600;fill:oklch(0.8 0.12 185)}
+.viz-node-text--output{font-size:10px;font-weight:600;fill:oklch(0.85 0.13 72)}
+
+/* ── STATS bar ─────────────────────────────────────────────── */
+.statsbar{background:var(--surface);border-bottom:1px solid var(--line);padding:var(--space-lg) 0}
+.statsbar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-md);text-align:center}
+.statsbar-item{padding:0 var(--space-sm)}
+.statsbar-value{font-family:var(--font-display);font-size:clamp(1.6rem,2.5vw,2.2rem);font-weight:300;color:var(--teal-dark);line-height:1;font-variant-numeric:tabular-nums}
+.statsbar-label{font-family:var(--font-sans);font-size:0.72rem;color:var(--ink-muted);margin-top:6px;letter-spacing:0.06em;text-transform:uppercase}
+
+/* ── EVIDENCE ──────────────────────────────────────────────── */
+.evidence{padding:var(--space-3xl) 0;background:var(--bg)}
+.evidence-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg);margin-top:var(--space-md)}
+.evidence-card{
+  padding:var(--space-xl);border-radius:var(--radius-lg);
+  background:var(--surface);border:1px solid var(--line);
+  position:relative;display:flex;flex-direction:column;
+}
+.evidence-card::before{content:'';position:absolute;top:0;left:var(--space-xl);right:var(--space-xl);height:2px}
+.evidence-card--confirmed::before{background:oklch(0.5 0.1 160)}
+.evidence-card--estimated::before{background:var(--amber)}
+.evidence-card--insufficient::before{background:oklch(0.5 0.1 30)}
+.evidence-label{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:3px;align-self:flex-start;
+  font-family:var(--font-sans);font-size:0.7rem;font-weight:600;
+  letter-spacing:0.08em;margin-bottom:var(--space-md);text-transform:uppercase;
+}
+.evidence-label--confirmed{background:oklch(0.5 0.1 160 / 0.12);color:oklch(0.25 0.1 160)}
+.evidence-label--estimated{background:var(--amber-dim);color:oklch(0.35 0.12 72)}
+.evidence-label--insufficient{background:oklch(0.4 0.1 30 / 0.1);color:oklch(0.3 0.1 30)}
+.evidence-card h3{font-size:1.2rem;margin-bottom:var(--space-sm);font-weight:500}
+.evidence-card p{font-size:0.95rem;color:var(--ink-muted);line-height:1.65;margin:0;max-width:none}
+
+/* ── SAMPLE OUTPUT ─────────────────────────────────────────── */
+.sample{padding:var(--space-3xl) 0;background:var(--hero-bg);color:var(--hero-text);position:relative;overflow:hidden}
+.sample::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 40% at 30% 50%, var(--teal-glow), transparent 70%);pointer-events:none}
+.sample-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:var(--space-2xl);align-items:center;position:relative;z-index:1}
+.sample-text h2{color:var(--hero-text);margin:var(--space-md) 0}
+.sample-text p{color:var(--hero-muted);font-size:1.05rem;line-height:;margin-bottom:var(--space-lg)}
+.sample-features{list-style:none;display:flex;flex-direction:column;gap:var(--space-sm);font-family:var(--font-sans);font-size:0.9rem}
+.sample-features li{display:flex;align-items:flex-start;gap:10px;color:var(--hero-muted)}
+.sample-features svg{width:14px;height:14px;stroke:var(--teal);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:4px}
+.sample-card{
+  background:var(--surface);color:var(--ink);
+  border-radius:var(--radius-lg);padding:var(--space-xl);
+  box-shadow:0 30px 60px -20px oklch(0 0 0 / 0.5),0 0 0 1px oklch(1 0 0 / 0.05);
+  font-family:var(--font-sans);position:relative;
+}
+.sample-card::before{content:'';position:absolute;top:-1px;left:24px;right:24px;height:2px;background:var(--teal)}
+.sample-card-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);margin-bottom:var(--space-lg);padding-bottom:var(--space-md);border-bottom:1px solid var(--line);font-size:0.78rem}
+.sample-prompt{color:var(--ink-soft);font-family:var(--font-sans);display:flex;align-items:center;gap:6px}
+.sample-prompt::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal)}
+.sample-marker{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:3px;
+  background:oklch(0.5 0.1 160 / 0.12);color:oklch(0.25 0.1 160);
+  font-family:var(--font-sans);font-size:0.7rem;font-weight:600;
+  letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;
+}
+.sample-question{font-family:var(--font-display);font-size:1.2rem;font-weight:500;line-height:1.4;margin-bottom:var(--space-lg);color:var(--ink);font-style:italic}
+.sample-answer{font-size:0.95rem;line-height:;color:var(--ink)}
+.sample-answer p{margin-bottom:var(--space-md);max-width:none}
+.sample-data{
+  background:var(--bg);padding:var(--space-md);border-radius:3px;
+  margin:var(--space-md) 0;font-family:var(--font-sans);font-size:0.85rem;
+  display:grid;grid-template-columns:auto 1fr;gap:6px var(--space-md);
+  border-left:3px solid var(--teal);
+}
+.sample-data dt{font-weight:600;color:var(--ink-muted);white-space:nowrap}
+.sample-data dd{color:var(--ink);font-variant-numeric:tabular-nums;margin:0}
+.sample-source{
+  display:flex;align-items:center;gap:8px;padding-top:var(--space-md);
+  border-top:1px solid var(--line);
+  font-family:var(--font-sans);font-size:0.78rem;color:var(--ink-muted);
+  flex-wrap:wrap;
+}
+.sample-source svg{width:13px;height:13px;stroke:var(--teal);fill:none;stroke-width:2;flex-shrink:0}
+/* ── WORKFLOW timeline ─────────────────────────────────────── */
+.workflow{padding:var(--space-3xl) 0;background:var(--surface)}
+.workflow-list{display:flex;flex-direction:column;gap:0;max-width:1080px;margin:0 auto}
+.workflow-step{
+  display:grid;grid-template-columns:1fr 100px 1fr;gap:var(--space-xl);
+  padding:var(--space-2xl) 0;border-top:1px solid var(--line);
+  align-items:start;position:relative;
+}
+.workflow-step:last-child{border-bottom:1px solid var(--line)}
+.workflow-step--odd .workflow-step-content{grid-column:1;grid-row:1;text-align:right}
+.workflow-step--odd .workflow-step-marker{grid-column:2;grid-row:1}
+.workflow-step--odd .workflow-step-visual{grid-column:3;grid-row:1}
+.workflow-step--even .workflow-step-visual{grid-column:1;grid-row:1}
+.workflow-step--even .workflow-step-marker{grid-column:2;grid-row:1}
+.workflow-step--even .workflow-step-content{grid-column:3;grid-row:1;text-align:left}
+.workflow-step-num{
+  font-family:var(--font-display);font-size:1.3rem;font-weight:400;
+  color:var(--teal-dark);display:flex;align-items:center;justify-content:center;
+  width:64px;height:64px;border:1px solid var(--line-strong);border-radius:50%;
+  margin:0 auto;background:var(--surface);font-variant-numeric:tabular-nums;
+}
+.workflow-step-eyebrow{font-family:var(--font-sans);font-size:0.72rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-dark);margin-bottom:var(--space-xs)}
+.workflow-step h3{font-size:1.4rem;margin-bottom:var(--space-sm);font-weight:500}
+.workflow-step-content p{color:var(--ink-muted);font-size:0.98rem;line-height:1.65;margin:0}
+.workflow-step-visual{
+  font-family:var(--font-mono);font-size:0.82rem;color:var(--ink-soft);
+  padding:var(--space-md);background:var(--bg);border:1px solid var(--line);
+  border-radius:var(--radius);line-height:1.6;
+}
+.workflow-step-visual strong{color:var(--teal-dark);font-weight:500;display:block;margin-bottom:4px;font-family:var(--font-sans);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase}
+
+/* ── SKILLS detailed ───────────────────────────────────────── */
+.skills{padding:var(--space-3xl) 0;background:var(--bg)}
+.skills-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg);margin-top:var(--space-md)}
+.skill-card{
+  padding:var(--space-lg);border-radius:var(--radius-lg);
+  background:var(--surface);border:1px solid var(--line);
+  display:flex;flex-direction:column;gap:var(--space-sm);
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.skill-card:hover{border-color:var(--teal);box-shadow:0 4px 20px oklch(0 0 0 / 0.06);transform:translateY(-2px)}
+.skill-card-head{display:flex;align-items:flex-start;gap:var(--space-sm);justify-content:space-between}
+.skill-card-icon{
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  background:var(--teal-dim);border-radius:var(--radius);color:var(--teal-dark);flex-shrink:0;
+}
+.skill-card-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.skill-card-tag{
+  font-family:var(--font-mono);font-size:0.68rem;color:var(--ink-soft);
+  padding:2px 8px;background:var(--bg);border-radius:2px;white-space:nowrap;
+}
+.skill-card h3{font-size:1.05rem;font-weight:500;margin:0;line-height:1.3}
+.skill-card p{font-size:0.88rem;color:var(--ink-muted);line-height:1.55;margin:0;max-width:none}
+.skill-card-author{font-family:var(--font-sans);font-size:0.74rem;color:var(--ink-soft);margin-top:auto;padding-top:var(--space-sm);border-top:1px dashed var(--line)}
+.skill-card-author a{color:var(--teal-dark);text-decoration:none}
+.skill-card-author a:hover{text-decoration:underline}
+
+/* ── CAPABILITIES ──────────────────────────────────────────── */
+.capabilities{padding:var(--space-3xl) 0;background:var(--bg)}
+.caps-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-lg);margin-top:var(--space-md)}
+.caps-item{
+  padding:var(--space-lg);border-radius:var(--radius-lg);
+  background:var(--surface);border:1px solid var(--line);
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+  display:flex;flex-direction:column;gap:var(--space-md);
+}
+.caps-item:hover{border-color:var(--teal);box-shadow:0 4px 20px oklch(0 0 0 / 0.06);transform:translateY(-1px)}
+.caps-item-icon{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  background:var(--teal-dim);border-radius:var(--radius);color:var(--teal-dark);
+}
+.caps-item-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.caps-item h3{font-size:1.15rem;font-weight:500;margin:0}
+.caps-item p{font-size:0.95rem;color:var(--ink-muted);line-height:1.6;margin:0;max-width:none}
+.caps-item-tools{
+  font-family:var(--font-mono);font-size:0.74rem;color:var(--teal-dark);
+  letter-spacing:0.02em;margin-top:auto;padding-top:var(--space-sm);
+  border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px;
+}
+.caps-item-tools span{background:var(--bg);padding:2px 8px;border-radius:2px}
+
+/* ── ROADMAP ───────────────────────────────────────────────── */
+.roadmap{padding:var(--space-3xl) 0;background:var(--surface)}
+.roadmap-timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);margin-top:var(--space-md);position:relative}
+.roadmap-timeline::before{content:'';position:absolute;top:24px;left:8%;right:8%;height:2px;background:linear-gradient(to right,var(--teal),var(--amber));opacity:0.3;z-index:0}
+.roadmap-phase{padding:var(--space-md);background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);position:relative;z-index:1}
+.roadmap-phase-num{
+  font-family:var(--font-display);font-size:2.2rem;font-weight:300;
+  color:var(--teal-dark);line-height:1;margin-bottom:var(--space-sm);
+}
+.roadmap-phase-badge{
+  display:inline-block;padding:2px 8px;border-radius:999px;
+  font-family:var(--font-sans);font-size:0.68rem;font-weight:600;
+  letter-spacing:0.08em;text-transform:uppercase;margin-bottom:var(--space-sm);
+}
+.roadmap-phase--done .roadmap-phase-num{color:oklch(0.4 0.1 160)}
+.roadmap-phase--done .roadmap-phase-badge{background:oklch(0.5 0.1 160 / 0.12);color:oklch(0.3 0.1 160)}
+.roadmap-phase--active .roadmap-phase-num{color:var(--teal-dark)}
+.roadmap-phase--active .roadmap-phase-badge{background:var(--teal-dim);color:var(--teal-dark)}
+.roadmap-phase--next .roadmap-phase-num{color:var(--amber)}
+.roadmap-phase--next .roadmap-phase-badge{background:var(--amber-dim);color:oklch(0.35 0.12 72)}
+.roadmap-phase--future .roadmap-phase-num{color:var(--ink-soft)}
+.roadmap-phase--future .roadmap-phase-badge{background:var(--line);color:var(--ink-muted)}
+.roadmap-phase h3{font-size:1rem;font-weight:500;margin-bottom:var(--space-xs)}
+.roadmap-phase p{font-size:0.85rem;color:var(--ink-muted);margin:0;line-height:1.5}
+.roadmap-phase-period{font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-soft);margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px dashed var(--line)}
+
+/* ── ARCHITECTURE ──────────────────────────────────────────── */
+.arch{padding:var(--space-3xl) 0;background:var(--hero-bg);color:var(--hero-text);position:relative;overflow:hidden}
+.arch::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 70% 30%, var(--teal-glow), transparent 70%);pointer-events:none}
+.arch .container{position:relative;z-index:1}
+.arch .section-head h2{color:var(--hero-text)}
+.arch .section-head p{color:var(--hero-muted)}
+.arch-diagram{
+  font-family:var(--font-mono);font-size:0.78rem;line-height:;
+  background:oklch(0 0 0 / 0.4);border:1px solid oklch(1 0 0 / 0.1);
+  border-radius:var(--radius-lg);padding:var(--space-xl);color:oklch(0.85 0.02 70);
+  overflow-x:auto;margin-top:var(--space-lg);white-space:pre;
+}
+.arch-diagram .arch-key{color:var(--amber);font-weight:500}
+.arch-diagram .arch-comment{color:oklch(0.55 0.02 70);font-style:italic}
+.arch-diagram .arch-new{color:oklch(0.7 0.1 160)}
+
+/* ── ASSETS/Resources ──────────────────────────────────────── */
+.assets-sec{padding:var(--space-3xl) 0;background:var(--surface)}
+.assets-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-lg);margin-top:var(--space-md)}
+.asset-card{
+  display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-lg);
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);
+  text-decoration:none;color:inherit;transition:border-color .15s,transform .15s,box-shadow .15s;
+}
+.asset-card:hover{border-color:var(--teal);transform:translateY(-1px);box-shadow:0 4px 16px oklch(0 0 0 / 0.05)}
+.asset-card-icon{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  background:var(--violet-dim);border-radius:var(--radius);color:var(--violet);flex-shrink:0;
+  font-family:var(--font-mono);font-size:0.7rem;font-weight:600;letter-spacing:0.04em;
+}
+.asset-card-body{flex:1;min-width:0}
+.asset-card h3{font-size:0.98rem;font-weight:500;margin:0 0 2px 0;line-height:1.3}
+.asset-card p{font-size:0.82rem;color:var(--ink-muted);margin:0;line-height:1.4;max-width:none}
+.asset-card-size{font-family:var(--font-mono);font-size:0.7rem;color:var(--ink-soft);flex-shrink:0}
+.asset-card svg{width:14px;height:14px;stroke:var(--ink-soft);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+/* ── TESTIMONIALS ──────────────────────────────────────────── */
+.testimonials{padding:var(--space-3xl) 0;background:var(--surface)}
+.testimonials-list{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg);margin-top:var(--space-md)}
+.testimonial{
+  background:var(--bg);padding:var(--space-xl);border-radius:var(--radius-lg);
+  border:1px solid var(--line);display:flex;flex-direction:column;position:relative;
+}
+.testimonial::before{content:'\201C';font-family:var(--font-display);font-size:4rem;color:var(--teal);position:absolute;top:-8px;left:16px;line-height:1;opacity:0.4}
+.testimonial-quote{font-family:var(--font-display);font-size:1.1rem;line-height:1.55;color:var(--ink);font-style:italic;margin-bottom:var(--space-lg);padding-top:var(--space-md)}
+.testimonial-author{display:flex;align-items:center;gap:var(--space-sm);margin-top:auto;padding-top:var(--space-md);border-top:1px solid var(--line)}
+.testimonial-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--teal-dim);color:var(--teal-dark);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-sans);font-size:0.82rem;font-weight:600;flex-shrink:0;
+}
+.testimonial-meta{font-family:var(--font-sans);font-size:0.82rem;line-height:1.4}
+.testimonial-meta strong{color:var(--ink);font-weight:600;display:block}
+.testimonial-meta span{color:var(--ink-muted)}
+.testimonial-disclaimer{
+  margin-top:var(--space-xl);font-family:var(--font-sans);font-size:0.82rem;color:var(--ink-muted);
+  padding:var(--space-md) var(--space-lg);
+  background:oklch(0.7 0.13 72 / 0.06);border-left:3px solid var(--amber);
+  border-radius:0 var(--radius) var(--radius) 0;max-width:75ch;line-height:1.6;
+}
+.testimonial-disclaimer strong{color:var(--ink);font-weight:600}
+
+/* ── CHANGELOG ─────────────────────────────────────────────── */
+.changelog{padding:var(--space-3xl) 0;background:var(--bg)}
+.changelog-list{display:flex;flex-direction:column;gap:var(--space-lg);margin-top:var(--space-md);max-width:820px}
+.changelog-item{
+  display:grid;grid-template-columns:140px 1fr;gap:var(--space-lg);
+  padding:var(--space-lg) 0;border-top:1px solid var(--line);
+}
+.changelog-item:last-child{border-bottom:1px solid var(--line)}
+.changelog-version{
+  font-family:var(--font-mono);font-size:0.82rem;color:var(--teal-dark);
+  font-weight:500;
+}
+.changelog-version small{display:block;font-family:var(--font-sans);font-size:0.72rem;color:var(--ink-soft);font-weight:400;margin-top:2px;letter-spacing:0.02em}
+.changelog-body h3{font-size:1rem;font-weight:500;margin-bottom:var(--space-sm)}
+.changelog-body ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.changelog-body li{font-size:0.88rem;color:var(--ink-muted);line-height:1.55;padding-left:16px;position:relative}
+.changelog-body li::before{content:'·';color:var(--teal);position:absolute;left:4px;font-weight:700}
+.changelog-body li strong{color:var(--ink);font-weight:500}
+
+/* ── CITATION ──────────────────────────────────────────────── */
+.citation{padding:var(--space-3xl) 0;background:var(--surface)}
+.citation-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-top:var(--space-md)}
+.citation-block{
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:var(--space-lg);font-family:var(--font-mono);font-size:0.82rem;
+  line-height:1.6;color:var(--ink);position:relative;
+}
+.citation-block::before{
+  content:attr(data-label);position:absolute;top:-9px;left:var(--space-md);
+  background:var(--surface);padding:0 8px;font-family:var(--font-sans);
+  font-size:0.68rem;font-weight:600;letter-spacing:0.1em;color:var(--teal-dark);
+  text-transform:uppercase;
+}
+.citation-block p{margin:0;max-width:none;white-space:pre-wrap;word-break:break-word}
+
+/* ── INTEGRITY ─────────────────────────────────────────────── */
+.integrity{padding:var(--space-3xl) 0;background:var(--teal-dark);color:#fff;text-align:center;position:relative;overflow:hidden}
+.integrity::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% 50%, oklch(0.55 0.1 185 / 0.25), transparent 70%)}
+.integrity .container{position:relative;z-index:1}
+.integrity h2{color:#fff;margin:var(--space-md) 0;font-weight:300}
+.integrity h2 em{color:oklch(0.85 0.13 72);font-style:italic;font-weight:400}
+.integrity p{max-width:65ch;margin:0 auto var(--space-xl);color:oklch(1 0 0 / 0.85);font-size:1.1rem;line-height:}
+.integrity-stats{display:flex;justify-content:center;gap:var(--space-2xl);flex-wrap:wrap;padding-top:var(--space-xl);border-top:1px solid oklch(1 0 0 / 0.18)}
+.integrity-stat{text-align:center;min-width:140px}
+.integrity-stat-value{font-family:var(--font-display);font-size:clamp(2.4rem,4vw,3.2rem);font-weight:300;color:#fff;line-height:1;font-variant-numeric:tabular-nums}
+.integrity-stat-label{font-family:var(--font-sans);font-size:0.78rem;color:oklch(1 0 0 / 0.7);margin-top:10px;letter-spacing:0.04em;text-transform:uppercase}
+
+/* ── FOOTER ────────────────────────────────────────────────── */
+footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);border-top:1px solid var(--line)}
+.footer-inner{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:var(--space-xl)}
+.footer-left{flex:1;min-width:280px;max-width:560px}
+.footer-brand{font-family:var(--font-display);font-weight:500;font-size:1.25rem;color:var(--ink);margin-bottom:var(--space-xs);display:flex;align-items:center;gap:10px}
+.footer-brand img{width:28px;height:28px;display:block}
+.footer-brand small{font-family:var(--font-sans);font-weight:400;font-size:0.75rem;color:var(--ink-soft);margin-left:8px;letter-spacing:0.04em}
+.footer-tagline{font-family:var(--font-display);font-style:italic;font-size:0.95rem;color:var(--ink-muted);margin-bottom:var(--space-md);line-height:1.5}
+.footer-credits{font-family:var(--font-sans);font-size:0.85rem;color:var(--ink-muted);line-height:1.6}
+.footer-credits strong{color:var(--ink);font-weight:500}
+.footer-credits a{color:var(--teal-dark);text-decoration:none}
+.footer-credits a:hover{text-decoration:underline}
+.footer-meta{margin-top:var(--space-md);display:flex;flex-wrap:wrap;gap:var(--space-sm);align-items:center}
+.trust-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-sans);font-size:0.78rem;color:var(--ink-muted);
+  padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);
+}
+.trust-dot{
+  width:7px;height:7px;border-radius:50%;background:oklch(0.5 0.1 160);flex-shrink:0;
+  box-shadow:0 0 0 3px oklch(0.5 0.1 160 / 0.2);
+  animation:pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px oklch(0.5 0.1 160 / 0.2)}50%{box-shadow:0 0 0 5px oklch(0.5 0.1 160 / 0.05)}}
+.footer-right{display:flex;flex-direction:column;align-items:flex-end;gap:var(--space-md)}
+.footer-links{display:flex;flex-direction:column;gap:var(--space-sm)}
+.footer-link{
+  font-family:var(--font-sans);font-size:0.85rem;color:var(--ink-muted);
+  display:inline-flex;align-items:center;gap:8px;transition:color .15s;
+  padding:8px 14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);
+  text-decoration:none;
+}
+.footer-link:hover{color:var(--teal-dark);border-color:var(--teal)}
+.footer-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── Entrance animation ────────────────────────────────────── */
+.fade-up{animation:fadeUp .8s cubic-bezier(0.16,1,0.3,1) both}
+.fade-up-1{animation-delay:0.1s}
+.fade-up-2{animation-delay:0.2s}
+.fade-up-3{animation-delay:0.3s}
+.fade-up-4{animation-delay:0.4s}
+.fade-up-5{animation-delay:0.5s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media(max-width:960px){
+  .topbar-nav{gap:var(--space-sm)}
+  .topbar-nav .topbar-link{display:none}
+  .hero-grid{grid-template-columns:1fr;gap:var(--space-xl)}
+  .hero-viz{max-width:380px;order:-1}
+  .statsbar-grid{grid-template-columns:repeat(2,1fr)}
+  .evidence-grid{grid-template-columns:1fr}
+  .sample-grid{grid-template-columns:1fr;gap:var(--space-xl)}
+  .workflow-step{grid-template-columns:1fr;gap:var(--space-md);padding:var(--space-xl) 0}
+  .workflow-step--odd .workflow-step-content,
+  .workflow-step--even .workflow-step-content{grid-column:1;grid-row:2;text-align:left}
+  .workflow-step--odd .workflow-step-marker,
+  .workflow-step--even .workflow-step-marker{grid-column:1;grid-row:1;margin:0}
+  .workflow-step--odd .workflow-step-visual,
+  .workflow-step--even .workflow-step-visual{grid-column:1;grid-row:3}
+  .skills-grid{grid-template-columns:1fr}
+  .caps-grid{grid-template-columns:1fr}
+  .roadmap-timeline{grid-template-columns:1fr;gap:var(--space-sm)}
+  .roadmap-timeline::before{display:none}
+  .assets-grid{grid-template-columns:1fr}
+  .testimonials-list{grid-template-columns:1fr}
+  .changelog-item{grid-template-columns:1fr;gap:var(--space-sm)}
+  .citation-grid{grid-template-columns:1fr}
+  .container{padding:0 var(--space-md)}
+  :root{--space-3xl:4rem;--space-2xl:3rem;--space-xl:2rem}
+  .footer-inner{flex-direction:column}
+  .footer-right{align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+  .fade-up{animation:none}
+  .trust-dot{animation:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── TOPBAR (sticky) ─────────────────────────────────── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#top" class="topbar-brand">
+      <img src="ico.svg" alt="PesquisAI" aria-hidden="true">
+      Pesquis<em>AI</em>
+    </a>
+    <nav class="topbar-nav">
+      <a href="#evidence" class="topbar-link">Evidência</a>
+      <a href="#output" class="topbar-link">Exemplo</a>
+      <a href="#workflow" class="topbar-link">Pipeline</a>
+      <a href="#skills" class="topbar-link">Skills</a>
+      <a href="#deliverables" class="topbar-link">Entregas</a>
+      <a href="#experience" class="topbar-link">Interface</a>
+      <a href="#arch" class="topbar-link">Arquitetura</a>
+      <a href="https://github.com/gustavobraga-byte/PesquisAI" target="_blank" rel="noopener" class="topbar-link">GitHub</a>
+      <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="topbar-cta">Abrir no Colab</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── HERO ────────────────────────────────────────────── -->
+<section class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="fade-up fade-up-1">
+        <div class="hero-badge">
+          <svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L6 13 3 8"/></svg>
+          v0.5.1.9 · UFV · SisPPG 10356285004
+        </div>
+        <h1>Pesquisa <em>científica</em><br>com integridade.</h1>
+        <p class="hero-sub">
+          Ecossistema de agentes de IA construído sobre a arquitetura <strong>OpenCode</strong>, projetado para pesquisadores brasileiros. Coleta dados reais de IBGE, DataSUS e agrobr, mantém memória persistente no Obsidian e produz conteúdo acadêmico conforme normas ABNT/UFV.
+        </p>
+        <div class="hero-ctas">
+          <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="hero-cta">
+            <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M2 13h12M9 3l3 3-3 3M14 6H5a3 3 0 0 0-3 3v1"/></svg>
+            Começar no Colab
+          </a>
+          <a href="#output" class="hero-cta hero-cta--ghost">
+            Ver exemplo real
+            <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M5 3l5 5-5 5"/></svg>
+          </a>
+        </div>
+        <div class="hero-trust">
+          <span class="hero-trust-item">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4"/></svg>
+            Fontes verificadas
+          </span>
+          <span class="hero-trust-item">
+            <svg viewBox="0 0 16 16"><path d="M4 12L12 4M12 12L4 4"/></svg>
+            Zero fabricação
+          </span>
+          <span class="hero-trust-item">
+            <svg viewBox="0 0 16 16"><path d="M8 3v5l3 2"/></svg>
+            Memória persistente
+          </span>
+          <span class="hero-trust-item">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4"/></svg>
+            Normas ABNT/UFV
+          </span>
+        </div>
+      </div>
+      <div class="hero-viz fade-up fade-up-2">
+        <img src="logo.svg" alt="PesquisAI" class="hero-logo-img">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── STATSBAR ───────────────────────────────────────── -->
+<section class="statsbar">
+  <div class="container">
+    <div class="statsbar-grid">
+      <div class="statsbar-item">
+        <div class="statsbar-value">148+</div>
+        <div class="statsbar-label">Scientific skills</div>
+      </div>
+      <div class="statsbar-item">
+        <div class="statsbar-value">9</div>
+        <div class="statsbar-label">Módulos brasileiros</div>
+      </div>
+      <div class="statsbar-item">
+        <div class="statsbar-value">100+</div>
+        <div class="statsbar-label">Bases científicas</div>
+      </div>
+      <div class="statsbar-item">
+        <div class="statsbar-value">95</div>
+        <div class="statsbar-label">Commits no GitHub</div>
+      </div>
+      <div class="statsbar-item">
+        <div class="statsbar-value">100%</div>
+        <div class="statsbar-label">Política zero-fabricação</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ─── EVIDENCE markers ────────────────────────────────── -->
+<section class="evidence" id="evidence">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Política de transparência</div>
+      <h2>Você sempre sabe a origem do que recebe.</h2>
+      <p class="text-muted">Cada resposta carrega um marcador explícito. Pesquisadores treinados a desconfiar de afirmações sem fonte encontram no PesquisAI um aliado, não mais um sistema opaco.</p>
+    </div>
+    <div class="evidence-grid">
+      <div class="evidence-card evidence-card--confirmed">
+        <span class="evidence-label evidence-label--confirmed">● Dado confirmado</span>
+        <h3>Extraído de fonte primária</h3>
+        <p>O dado veio direto de uma skill habilitada — IBGE, DataSUS, PubMed, SciELO. Existe, foi consultado em tempo real, e tem referência rastreável até o documento original.</p>
+      </div>
+      <div class="evidence-card evidence-card--estimated">
+        <span class="evidence-label evidence-label--estimated">● Estimativa fundamentada</span>
+        <h3>Inferência explicitada</h3>
+        <p>Quando o dado exato não está disponível, o PesquisAI informa que se trata de uma estimativa e documenta a metodologia usada para chegar ao valor. Nada escondido.</p>
+      </div>
+      <div class="evidence-card evidence-card--insufficient">
+        <span class="evidence-label evidence-label--insufficient">● Sem dados suficientes</span>
+        <h3>Limite reconhecido</h3>
+        <p>Se as fontes não retornam o que você precisa, o sistema declara explicitamente a ausência e recomenda onde buscar. Inventar seria mais fácil — e é proibido.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SAMPLE OUTPUT ──────────────────────────────────── -->
+<section class="sample" id="output">
+  <div class="container">
+    <div class="sample-grid">
+      <div class="sample-text fade-up fade-up-1">
+        <div class="eyebrow" style="color:oklch(0.75 0.12 185)">Exemplo real · resposta do PesquisAI</div>
+        <h2 style="color:var(--hero-text)">Veja o que uma resposta entrega.</h2>
+        <p>À direita, um exemplo real de como o PesquisAI responde a uma pergunta sobre dados demográficos. O marcador de evidência está visível, a fonte está documentada, os dados têm referência rastreável.</p>
+        <ul class="sample-features">
+          <li>
+            <svg viewBox="0 0 16 16"><path d="M3 8l3 3 7-7"/></svg>
+            Marcador de evidência explícito em cada resposta
+          </li>
+          <li>
+            <svg viewBox="0 0 16 16"><path d="M3 8l3 3 7-7"/></svg>
+            Dados tabulares formatados, não colados em prosa
+          </li>
+          <li>
+            <svg viewBox="0 0 16 16"><path d="M3 8l3 3 7-7"/></svg>
+            Fonte primária linkada com DOI ou URL oficial
+          </li>
+          <li>
+            <svg viewBox="0 0 16 16"><path d="M3 8l3 3 7-7"/></svg>
+            Nenhuma inferência sem metodologia declarada
+          </li>
+          <li>
+            <svg viewBox="0 0 16 16"><path d="M3 8l3 3 7-7"/></svg>
+            Arquivo resultante salvo no Google Drive
+          </li>
+        </ul>
+      </div>
+      <div class="sample-card fade-up fade-up-2">
+        <div class="sample-card-head">
+          <span class="sample-prompt">pergunta do pesquisador</span>
+          <span class="sample-marker">● Dado confirmado</span>
+        </div>
+        <div class="sample-question">
+          "Qual a população estimada e o IDH de Viçosa, MG, segundo o último censo?"
+        </div>
+        <div class="sample-answer">
+          <p>Segundo o Censo Demográfico 2022 do IBGE, o município de Viçosa (MG) apresenta os seguintes indicadores:</p>
+          <dl class="sample-data">
+            <dt>População</dt><dd>76.381 habitantes</dd>
+            <dt>Densidade</dt><dd>296,1 hab/km²</dd>
+            <dt>IDH-M (2010)</dt><dd>0,775</dd>
+            <dt>Faixa IDH</dt><dd>Alto — PNUD/Atlas BR</dd>
+          </dl>
+          <p>A queda populacional observada entre 2010 e 2022 reflete o envelhecimento da população universitária e o êxodo de famílias jovens para municípios vizinhos com maior oferta habitacional.</p>
+        </div>
+        <div class="sample-source">
+          <svg viewBox="0 0 16 16"><path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5"/><path d="M6 3a5 5 0 0 0-7.07 0L-2.48 4.41a5 5 0 0 0 7.07 7.07L6 11"/></svg>
+          Fonte: SIDRA tab. 9514 (IBGE, 2022) · IPEADATA · PNUD/Atlas BR (2010)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── WORKFLOW timeline ──────────────────────────────── -->
+<section class="workflow" id="workflow">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Pipeline de pesquisa</div>
+      <h2>Seis etapas, executadas a cada consulta.</h2>
+      <p class="text-muted">Sem atalhos, sem silêncios. Você acompanha cada movimento do agente.</p>
+    </div>
+    <div class="workflow-list">
+      <div class="workflow-step workflow-step--odd">
+        <div class="workflow-step-content">
+          <div class="workflow-step-eyebrow">Etapa 01</div>
+          <h3>Compreensão</h3>
+          <p>O agente analisa o tema, identifica que tipo de dado é necessário e quais fontes devem ser consultadas antes de iniciar a coleta.</p>
+        </div>
+        <div class="workflow-step-marker">
+          <div class="workflow-step-num">01</div>
+        </div>
+        <div class="workflow-step-visual">
+          <strong>Saída</strong>
+          mapa de fontes + escopo da pergunta
+        </div>
+      </div>
+      <div class="workflow-step workflow-step--even">
+        <div class="workflow-step-visual">
+          <strong>Saída</strong>
+          dados brutos + metadados + DOI
+        </div>
+        <div class="workflow-step-marker">
+          <div class="workflow-step-num">02</div>
+        </div>
+        <div class="workflow-step-content">
+          <div class="workflow-step-eyebrow">Etapa 02</div>
+          <h3>Coleta</h3>
+          <p>Skills especializadas consultam IBGE, DataSUS, agrobr, PubMed, SciELO, Lilacs e outras bases oficiais em tempo real, sem cache desatualizado.</p>
+        </div>
+      </div>
+      <div class="workflow-step workflow-step--odd">
+        <div class="workflow-step-content">
+          <div class="workflow-step-eyebrow">Etapa 03</div>
+          <h3>Validação</h3>
+          <p>Dados nacionais são cruzados com literatura internacional. Divergências entre fontes são sinalizadas, nunca ocultadas — quem decide é o pesquisador.</p>
+        </div>
+        <div class="workflow-step-marker">
+          <div class="workflow-step-num">03</div>
+        </div>
+        <div class="workflow-step-visual">
+          <strong>Saída</strong>
+          tabela cruzada com divergências marcadas
+        </div>
+      </div>
+      <div class="workflow-step workflow-step--even">
+        <div class="workflow-step-visual">
+          <strong>Saída</strong>
+          esboço com referências ordenadas
+        </div>
+        <div class="workflow-step-marker">
+          <div class="workflow-step-num">04</div>
+        </div>
+        <div class="workflow-step-content">
+          <div class="workflow-step-eyebrow">Etapa 04</div>
+          <h3>Síntese</h3>
+          <p>Informações de múltiplas fontes são integradas em uma narrativa coesa, com referências rastreáveis e cadeia causal entre os achados.</p>
+        </div>
+      </div>
+      <div class="workflow-step workflow-step--odd">
+        <div class="workflow-step-content">
+          <div class="workflow-step-eyebrow">Etapa 05</div>
+          <h3>Redação</h3>
+          <p>O conteúdo é redigido em linguagem científica precisa, com citações no formato ABNT, APA ou Vancouver — conforme a escolha do pesquisador.</p>
+        </div>
+        <div class="workflow-step-marker">
+          <div class="workflow-step-num">05</div>
+        </div>
+        <div class="workflow-step-visual">
+          <strong>Saída</strong>
+          texto formatado NBR 14724 / 6023 / 10520
+        </div>
+      </div>
+      <div class="workflow-step workflow-step--even">
+        <div class="workflow-step-visual">
+          <strong>Saída</strong>
+          arquivo .md + versão .pdf no Google Drive
+        </div>
+        <div class="workflow-step-marker">
+          <div class="workflow-step-num">06</div>
+        </div>
+        <div class="workflow-step-content">
+          <div class="workflow-step-eyebrow">Etapa 06</div>
+          <h3>Entrega</h3>
+          <p>O resultado inclui os arquivos gerados e a lista completa de fontes consultadas, com link direto para o Google Drive e nota de auditoria no vault.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ─── SKILLS detalhadas ─────────────────────────────────── -->
+<section class="skills" id="skills">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Módulos do ecossistema</div>
+      <h2>Nove módulos brasileiros, 148 scientific skills.</h2>
+      <p class="text-muted">Sobre a biblioteca <strong>Scientific Agent Skills</strong> (148+ skills científicos e 100+ bases de dados indexadas do repositório <a href="https://github.com/K-Dense-AI/scientific-agent-skills" target="_blank" rel="noopener">K-Dense-AI</a>), o PesquisAI adiciona <strong>nove módulos próprios</strong> voltados ao contexto brasileiro — cada um conecta o agente a uma fonte ou capacidade específica, sempre sob a mesma política de transparência.</p>
+    </div>
+    <div class="skills-grid">
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <span class="skill-card-tag">ibge-br</span>
+        </div>
+        <h3>Dados IBGE</h3>
+        <p>Consulta automatizada à API do IBGE — Censo Demográfico, PNAD Contínua, PIB municipal, SIDRA, malhas geográficas, CNAE, nomes e calendário de pesquisas.</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <span class="skill-card-tag">opendatasus</span>
+        </div>
+        <h3>DataSUS / OpenDataSUS</h3>
+        <p>Integração com 101 datasets do Ministério da Saúde — mortalidade, internações, vacinação, COVID-19, dengue, SINAN, SIH, SRAG, nascimentos e indicadores.</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="skill-card-tag">agrobr</span>
+        </div>
+        <h3>Agro & Ambiente</h3>
+        <p>38+ fontes do agronegócio — CONAB, IBGE PAM/LSPA, ComexStat, CEPEA, MapBiomas, PRODES/DETER, SICAR/CAR, créditos rurais (SICOR), clima (NASA POWER, INMET).</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <span class="skill-card-tag">dados-brasil</span>
+        </div>
+        <h3>Dados Brasil</h3>
+        <p>Indicadores oficiais complementares — Banco Central (SELIC, IPCA, câmbio), Câmara, Senado, Portal da Transparência, TCU, TSE, ANP, ANTT, Anvisa, INEP, Atlas da Violência.</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+          </div>
+          <span class="skill-card-tag">UFV-ABNT</span>
+        </div>
+        <h3>Formatação ABNT/UFV</h3>
+        <p>Normalização completa conforme NBR 14724/2024, NBR 6023/2018 e NBR 10520/2023 — TCCs, monografias, dissertações, teses, citações, referências, sumário e paginação.</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <span class="skill-card-tag">analise-qualitativa</span>
+        </div>
+        <h3>Análise Qualitativa</h3>
+        <p>Métodos clássicos e avançados — frequência de palavras, CHD (Reinert), análise de similitude, codificação temática, LDA, KWIC, sentimentos. Substitui NVivo e Iramuteq.</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M9.5 2A4.5 4.5 0 0 1 14 6.5c0 1.5-.5 2.5-1 3.5l4.5 4.5-2 2L11 12c-1 .5-2 1-3.5 1A4.5 4.5 0 0 1 3 8.5c0-1 .5-2 1-2.5L7 9l2-2-2.5-3c.5-.5 1.5-1 3-1z"/><path d="M14 14l6 6"/></svg>
+          </div>
+          <span class="skill-card-tag">scientific-skills</span>
+        </div>
+        <h3>Skills científicas (K-Dense)</h3>
+        <p>Mineração de textos, revisão bibliográfica sistemática, suporte metodológico IMRAD, busca em PubMed, SciELO, Lilacs, Cochrane, arXiv, Semantic Scholar.</p>
+        <div class="skill-card-author">por <a href="https://github.com/K-Dense-AI" target="_blank" rel="noopener">@K-Dense-AI</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-10 10 10 10 0 0 0 10 10 10 10 0 0 0 10-10 10 10 0 0 0-10-10z"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <span class="skill-card-tag">obsidian-memory</span>
+        </div>
+        <h3>Memória Persistente 🧠</h3>
+        <p>Vault Obsidian no Google Drive — notas, dados e decisões persistem entre sessões. 10 templates, busca BM25 + semântica (RAG), taxonomia de tags, auditoria automática.</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-card-head">
+          <div class="skill-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+          </div>
+          <span class="skill-card-tag">memorial-ufv</span>
+        </div>
+        <h3>Memorial RSC-PCCTAE 📜</h3>
+        <p>Geração automática do Memorial RSC-PCCTAE a partir do Relatório Detalhado emitido pelo sistema oficial da UFV. Lê o PDF, extrai dados e formata narrativa acadêmica UFV/ABNT.</p>
+        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- ─── CAPABILITIES ────────────────────────────────────── -->
+<section class="capabilities">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Caixa de ferramentas</div>
+      <h2>Seis frentes, uma única metodologia.</h2>
+      <p class="text-muted">O PesquisAI reúne num só ambiente as ferramentas essenciais para a pesquisa acadêmica brasileira — todas com a mesma política de transparência e integridade.</p>
+    </div>
+    <div class="caps-grid">
+      <div class="caps-item">
+        <div class="caps-item-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3>Dados oficiais do Brasil</h3>
+        <p>38+ fontes públicas consultadas em tempo real: IBGE (Censo, PNAD, PIB), DataSUS (epidemiologia, mortalidade, vacinação), agrobr (preços, safra, desmatamento), Portal da Transparência.</p>
+        <div class="caps-item-tools">
+          <span>SIDRA</span><span>SINAN</span><span>SIH</span><span>CONAB</span><span>CEPEA</span>
+        </div>
+      </div>
+      <div class="caps-item">
+        <div class="caps-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <h3>Revisão sistemática</h3>
+        <p>Busca em PubMed, SciELO, Lilacs, Cochrane, arXiv e Semantic Scholar com critérios de inclusão/exclusão explícitos. Extração estruturada de métodos, amostras e resultados.</p>
+        <div class="caps-item-tools">
+          <span>PRISMA</span><span>Cochrane</span><span>GRADE</span><span>PROSPERO</span>
+        </div>
+      </div>
+      <div class="caps-item">
+        <div class="caps-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+        </div>
+        <h3>Formatação ABNT/UFV</h3>
+        <p>Normalização completa de TCCs, monografias, dissertações e teses conforme NBR 14724/2024, NBR 6023/2018 e NBR 10520/2023. Citações, referências, sumário e paginação.</p>
+        <div class="caps-item-tools">
+          <span>NBR 14724</span><span>NBR 6023</span><span>NBR 10520</span>
+        </div>
+      </div>
+      <div class="caps-item">
+        <div class="caps-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3>Análise qualitativa</h3>
+        <p>Frequência de palavras, CHD (método Reinert), análise de similitude, codificação temática, modelagem de tópicos (LDA). Substitui NVivo e Iramuteq com integração Python.</p>
+        <div class="caps-item-tools">
+          <span>CHD</span><span>Reinert</span><span>LDA</span><span>IRaMuTeQ compat.</span>
+        </div>
+      </div>
+      <div class="caps-item">
+        <div class="caps-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <h3>Memória persistente</h3>
+        <p>Notas, dados e decisões metodológicas salvos em vault Obsidian no Google Drive. Busca semântica (RAG), continuidade entre sessões — o agente retoma o projeto de onde parou.</p>
+        <div class="caps-item-tools">
+          <span>Obsidian</span><span>Google Drive</span><span>RAG · FAISS</span>
+        </div>
+      </div>
+      <div class="caps-item">
+        <div class="caps-item-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </div>
+        <h3>Código aberto</h3>
+        <p>Disponível no GitHub sob licença MIT. Auditável linha a linha, extensível, gratuito. Pesquisadores podem revisar a metodologia, sugerir mudanças e adaptar para suas áreas.</p>
+        <div class="caps-item-tools">
+          <span>MIT license</span><span>Python</span><span>uv · OpenCode</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DELIVERABLES ───────────────────────────────────── -->
+<section class="skills" id="deliverables">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">O que o PesquisAI entrega</div>
+      <h2>Nove formatos de saída acadêmica.</h2>
+      <p class="text-muted">Do artigo original à defesa de memorial — cada entrega segue normas ABNT/UFV e carrega marcadores de evidência rastreáveis em todo o texto.</p>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">01</span></div>
+        <h3>Artigo Científico</h3>
+        <p>IMRaD completo (Introdução, Métodos, Resultados, Discussão) com citações formatadas em ABNT e referências validadas.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">02</span></div>
+        <h3>Revisão Sistemática</h3>
+        <p>Protocolo PRISMA, string de busca, triagem por critérios de inclusão/exclusão e síntese por eixos temáticos.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">03</span></div>
+        <h3>Meta-Análise</h3>
+        <p>Síntese quantitativa de efeitos com forest plots e heterogeneidade — sobre evidências de múltiplos estudos.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">04</span></div>
+        <h3>Dissertação / Tese</h3>
+        <p>Estrutura ABNT/UFV, capítulos, resumo e defesa — normalização completa do trabalho acadêmico.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">05</span></div>
+        <h3>Proposta de Projeto</h3>
+        <p>Edital, orçamento e cronograma para submissão a agências (CNPq, CAPES, FAPs) sob normas de chamada.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">06</span></div>
+        <h3>Relatório de Dados</h3>
+        <p>Tabelas, séries temporais e gráficos gerados a partir de IBGE, DataSUS e demais fontes brasileiras.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">07</span></div>
+        <h3>Análise Qualitativa</h3>
+        <p>Método Reinert, similitude e codificação — substitui NVivo e Iramuteq em análises de conteúdo.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">08</span></div>
+        <h3>Hipóteses Testáveis</h3>
+        <p>Formulação de H₀/H₁, variáveis e plano de teste estatístico a partir de observações e literatura.</p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">09</span></div>
+        <h3>Declaração de IA</h3>
+        <p>Transparência de uso de LLM conforme normas de periódicos e integridade científica (CNPq/CAPES).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── EXPERIENCE (interface real) ───────────────────── -->
+<section class="capabilities" id="experience">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">A interface real</div>
+      <h2>Prompts de exemplo e respostas ilustrativas.</h2>
+      <p class="text-muted"><strong>Nota:</strong> os trechos abaixo reproduzem <em>exemplos de demonstração</em> do pitch do projeto. Não correspondem a consultas executadas ao vivo — servem para ilustrar o padrão de resposta do agente (fonte, marcador de evidência e link).</p>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">IBGE</span></div>
+        <h3>Gini por UF (2010–2022)</h3>
+        <p class="text-mono">"Gini por UF 2010 a 2022"</p>
+        <p>O Índice de Gini do Distrito Federal recuou de 0,563 para 0,514; o do Piauí, de 0,616 para 0,581 — convergência regional lenta. <em>[exemplo ilustrativo]</em></p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">DataSUS</span></div>
+        <h3>Agrotóxicos por estado</h3>
+        <p class="text-mono">"Agrotóxicos por estado"</p>
+        <p>Mato Grosso lidera em volume comercializado; São Paulo, em variedade de princípios ativos registrados. <em>[exemplo ilustrativo]</em></p>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-head"><span class="skill-card-tag">Scientific</span></div>
+        <h3>EGFR em câncer</h3>
+        <p class="text-mono">"EGFR em câncer"</p>
+        <p>A mutação KRAS G12C dirige a aprovação de inibidores; evidência do trial CodeBreaK 100. <em>[exemplo ilustrativo]</em></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── ARCHITECTURE ────────────────────────────────────── -->
+<section class="arch" id="arch">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow" style="color:oklch(0.75 0.12 185)">Arquitetura do sistema</div>
+      <h2>Como tudo se conecta.</h2>
+      <p>O PesquisAI roda sobre ttyd (terminal web) + OpenCode (runtime do agente, v1.17.18), com dependências gerenciadas pelo <code>uv</code> (Astral). Os <strong>nove módulos brasileiros</strong> operam sobre a biblioteca <strong>Scientific Agent Skills</strong> — <strong>148+ skills científicos</strong> e <strong>100+ bases de dados</strong> indexadas —, todas plugáveis.</p>
+    </div>
+<pre class="arch-diagram"><span class="arch-key">Google Colab</span>
+└── ttyd (terminal web na porta 8000)
+    └── opencode (runtime do agente)
+        ├── <span class="arch-key">skill-ibge</span>          <span class="arch-comment"># Consulta à API do IBGE</span>
+        ├── <span class="arch-key">skill-datasus</span>       <span class="arch-comment"># OpenDataSUS — 101 datasets</span>
+        ├── <span class="arch-key">skill-dados-brasil</span> <span class="arch-comment"># BCB, Câmara, Senado, TCU…</span>
+        ├── <span class="arch-key">skill-agrobr</span>       <span class="arch-comment"># CONAB, MapBiomas, SICOR…</span>
+        ├── <span class="arch-key">skill-UFV-ABNT</span>      <span class="arch-comment"># NBR 14724 / 6023 / 10520</span>
+        ├── <span class="arch-key">skill-analise-qualitativa</span> <span class="arch-comment"># CHD, Reinert, LDA, similitude</span>
+        ├── <span class="arch-key">scientific-skills</span>   <span class="arch-comment"># K-Dense — PubMed, SciELO, arXiv</span>
+        ├── <span class="arch-new">skill-obsidian-memory</span>  <span class="arch-comment"># ← memória persistente (v0.5.0+)</span>
+        ├── <span class="arch-new">skill-memorial-ufv</span>    <span class="arch-comment"># ← Memorial RSC-PCCTAE UFV/ABNT (v0.5.1.9+)</span>
+        └── <span class="arch-key">pesquisai</span>           <span class="arch-comment"># instruções do agente + AGENTS.md</span>
+
+<span class="arch-comment">Dependências: uv (Astral) · Python 3.10+ · 4 idiomas (pt_BR, en_US, es_ES, fr_FR)</span></pre>
+  </div>
+</section>
+
+<!-- ─── TESTIMONIALS ────────────────────────────────────── -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Da comunidade acadêmica</div>
+      <h2>Por que a integridade importa.</h2>
+      <p class="text-muted">Vozes representativas de personas que usam ferramentas de pesquisa assistida por IA em seu trabalho.</p>
+    </div>
+    <div class="testimonials-list">
+      <div class="testimonial">
+        <p class="testimonial-quote">
+       O PesquisAI entregou geoprocessamento de alto nível e em velocidade surpreendente. Em duas semanas, consegui processar dados suficientes para toda minha dissertação.
+</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">AC</div>
+          <div class="testimonial-meta">
+            <strong>Estudante de pós-graduação</strong>
+            <span>Extensão Rural · UFV</span>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <p class="testimonial-quote">
+A utilização da inteligência artificial PesquisAI, desenvolvida pelo Professo Gustavo, muda seu modo de pensar e desenvolver pesquisa. Fiz análises utilizando dados Geoespaciais, assim como análises em softwares GIS e em alguns minutos os dados foram revisados e aprimorados com produção de tabelas, mapas e texto coeso e com muita confiabilidade nas referências bibliográficas. O trabalho do pesquisador passa a ser identificar os dados da análise e quais as bases que devem ser analisadas. Nunca deixaremos de pensar e avaliar os dados, mas o mecânico da extração já podem ser feitas com essa IA gratuita e de excelência.
+     </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">DI</div>
+          <div class="testimonial-meta">
+            <strong>Professor Pesquisador</strong>
+            <span>Engenharia · IFBaiano</span>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <p class="testimonial-quote">
+O programa é ótimo para busca e estruturação de artigos, dissertações e teses. A IA realiza as buscas sem alucinações e mostra as fontes consultadas.
+        </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">IB</div>
+          <div class="testimonial-meta">
+            <strong>Doutora</strong>
+            <span>Química · Unicamp</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="testimonial-disclaimer">
+      <strong>Nota editorial:</strong> Os depoimentos acima são representativos de personas típicas de usuários, elaborados a partir de padrões de uso observados durante desenvolvimento. Não correspondem a falas atribuíveis a pessoas específicas.
+    </p>
+  </div>
+</section>
+
+<!-- ─── CHANGELOG ───────────────────────────────────────── -->
+<section class="changelog" id="changelog">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Histórico de versões</div>
+      <h2>O que mudou recentemente.</h2>
+      <p class="text-muted">Últimas cinco releases do PesquisAI. Histórico completo disponível no <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/CHANGELOG.md" target="_blank" rel="noopener" style="color:var(--teal-dark)">CHANGELOG.md</a> no GitHub.</p>
+    </div>
+    <div class="changelog-list">
+
+      <div class="changelog-item">
+        <div class="changelog-version">0.5.1.9<small>2026-07-18</small></div>
+        <div class="changelog-body">
+          <h3>3 Versão Offline para Linux e atualização do AGENTS.md</h3>
+          <ul>
+            <li><strong>Bugfix:</strong> Instalador offline para Linux</li>
+            <li><strong>Bugfix:</strong> Reescrita completa do AGENTS.md</li>
+            <li><strong>Feature:</strong> CNova arquitetura de diretórios</li>
+            <li>Fortalecimento de Integridade e Segurança</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="changelog-item">
+        <div class="changelog-version">0.5.1.8<small>2026-07-10</small></div>
+        <div class="changelog-body">
+          <h3>3 bugfixes + nova skill Memorial UFV</h3>
+          <ul>
+            <li><strong>Bugfix:</strong> Botões de provedor (edit/delete) quebrados por SyntaxError em string Python</li>
+            <li><strong>Bugfix:</strong> Restauração de sessão agora reflete no terminal ttyd</li>
+            <li><strong>Feature:</strong> Confirmação antes de restaurar backup</li>
+            <li><strong>Nova skill:</strong> <code>skill-memorial-ufv</code> — Memorial RSC-PCCTAE UFV/ABNT</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="changelog-item">
+        <div class="changelog-version">0.5.1.5<small>2026-07-01</small></div>
+        <div class="changelog-body">
+          <h3>Editor de Memória Obsidian no botão 🧠</h3>
+          <ul>
+            <li>Modal split view: lista de notas + editor markdown (Edit / Preview / Split)</li>
+            <li>4 endpoints REST novos para ler/criar/buscar/deletar notas</li>
+            <li>Preview markdown via <code>marked.js</code> com destaque de <code>[[wikilinks]]</code> e <code>#tags</code></li>
+            <li>20 novas chaves i18n (<code>memory.editor.*</code>) em 4 idiomas</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="changelog-item">
+        <div class="changelog-version">0.5.1<small>2026-06-29</small></div>
+        <div class="changelog-body">
+          <h3>Obsidian Autopilot — o agente agora SALVA SOZINHO</h3>
+          <ul>
+            <li><code>pesquisai/obsidian/autopilot.py</code> — API de alto nível: recall, save, save_finding, start/end_session</li>
+            <li>Prompt do agente injeta instruções de autopilot</li>
+            <li>Daily note e MOC raiz criados automaticamente no vault</li>
+            <li>Tudo é <strong>no-op</strong> se o vault não estiver disponível</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="changelog-item">
+        <div class="changelog-version">0.5.0<small>2026-06-28</small></div>
+        <div class="changelog-body">
+          <h3>Obsidian Second Brain — memória de longo prazo</h3>
+          <ul>
+            <li>Módulo <code>pesquisai.obsidian</code> (8 arquivos, ~1.500 linhas)</li>
+            <li>10 templates Obsidian (daily, research, literature, session, methodology, datasource, hypothesis, reference, moc, inbox)</li>
+            <li>Busca BM25 offline + backlinks + wikilinks + tags</li>
+            <li>Taxonomia de tags <code>pesquisai/*</code> (19 tags oficiais)</li>
+            <li>71 testes pytest (100% passing) + teste e2e validado</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="changelog-item">
+        <div class="changelog-version">0.4.0<small>2026-06-15</small></div>
+        <div class="changelog-body">
+          <h3>Release inicial do PesquisAI</h3>
+          <ul>
+            <li>Agente de pesquisa científica via OpenCode</li>
+            <li>Integração IBGE, DataSUS, dados-brasil, agrobr</li>
+            <li>Wrapper HTML com ttyd + tema escuro "pesquisai"</li>
+            <li>Backup/restore de sessões · gerenciamento de provedores de IA · 4 idiomas</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- ─── CITATION ───────────────────────────────────────── -->
+<section class="citation" id="citation">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Como citar</div>
+      <h2>Use o PesquisAI com crédito.</h2>
+      <p class="text-muted">O uso do PesquisAI em trabalhos acadêmicos deve ser declarado conforme diretrizes do COPE, CAPES e principais periódicos. Escolha o formato abaixo.</p>
+    </div>
+    <div class="citation-grid">
+
+      <div class="citation-block" data-label="ABNT NBR 6023:2018">
+        <p>BRAGA, Gustavo Bastos. PesquisAI: agente de inteligência artificial para pesquisa científica. Versão 0.5.1.9. Viçosa: Universidade Federal de Viçosa, 2026. Disponível em: https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/. Acesso em: DD mês. AAAA.
+
+Projeto registrado no SisPPG/UFV sob nº 10356285004.
+Verificar autenticidade em: http://sisppg.ufv.br</p>
+      </div>
+
+      <div class="citation-block" data-label="BibTeX">
+        <p>@software{braga2026pesquisai,
+  author       = {Gustavo Bastos Braga},
+  title        = {{PesquisAI}: Agente de Intelig{\^e}ncia Artificial
+                  para Pesquisa Cient{\'\i}fica},
+  year         = {2026},
+  version      = {0.5.1.9},
+  institution  = {Universidade Federal de Vi{\c{c}}osa (UFV)},
+  url          = {https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/}
+}</p>
+      </div>
+
+    </div>
+    <p style="margin-top:var(--space-lg);font-family:var(--font-sans);font-size:0.85rem;color:var(--ink-muted);max-width:75ch;line-height:1.6">
+      Para modelos prontos de declaração de uso de IA (ABNT, ICMJE, Nature, Science, Elsevier, Springer), consulte o arquivo
+      <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/declaracao_uso_ia.md" target="_blank" rel="noopener" style="color:var(--teal-dark)">declaracao_uso_ia.md</a> no repositório.
+    </p>
+  </div>
+</section>
+
+<!-- ─── INTEGRITY ───────────────────────────────────────── -->
+<section class="integrity">
+  <div class="container">
+    <h2>Compromisso com a <em>integridade</em> científica.</h2>
+    <p>
+      O PesquisAI opera sob uma política inegociável: nunca inventar dados, sempre declarar a fonte, sempre sinalizar a incerteza. Cada resposta é rastreável até sua origem.
+    </p>
+    <div class="integrity-stats">
+      <div class="integrity-stat">
+        <div class="integrity-stat-value">38+</div>
+        <div class="integrity-stat-label">Fontes oficiais brasileiras</div>
+      </div>
+      <div class="integrity-stat">
+        <div class="integrity-stat-value">3</div>
+        <div class="integrity-stat-label">Níveis de evidência explícitos</div>
+      </div>
+      <div class="integrity-stat">
+        <div class="integrity-stat-value">71</div>
+        <div class="integrity-stat-label">Testes pytest (100% passando)</div>
+      </div>
+      <div class="integrity-stat">
+        <div class="integrity-stat-value">100%</div>
+        <div class="integrity-stat-label">Política zero-fabricação</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ──────────────────────────────────────────── -->
+<footer id="contact">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-brand">
+          <img src="ico.svg" alt="PesquisAI" aria-hidden="true">
+          PesquisAI<small>v0.5.1.9</small>
+        </div>
+        <div class="footer-tagline">Pesquisa científica com integridade — sempre.</div>
+        <div class="footer-credits">
+          Construído por <strong>Gustavo Bastos Braga</strong> · <strong>Universidade Federal de Viçosa (UFV)</strong>, Viçosa, MG · Brasil<br>
+          Registro SisPPG nº 10356285004 · Mantido em conformidade com os princípios de integridade científica da <strong>CAPES</strong> e <strong>CNPq</strong>.<br>
+          Contato: <a href="mailto:gustavo.braga@ufv.br">gustavo.braga@ufv.br</a>
+        </div>
+        <div class="footer-meta">
+          <span class="trust-chip">
+            <span class="trust-dot"></span>Integridade ativa
+          </span>
+          <span class="trust-chip">
+            MIT license
+          </span>
+          <span class="trust-chip">
+            Python 3.10+
+          </span>
+        </div>
+      </div>
+      <div class="footer-right">
+        <div class="footer-links">
+          <a href="https://github.com/gustavobraga-byte/PesquisAI" target="_blank" rel="noopener" class="footer-link">
+            <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            Código fonte no GitHub
+          </a>
+          <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="footer-link">
+            <svg viewBox="0 0 16 16"><path d="M2 13h12M9 3l3 3-3 3M14 6H5a3 3 0 0 0-3 3v1"/></svg>
+            Abrir no Google Colab
+          </a>
+          <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/MANUAL.md" target="_blank" rel="noopener" class="footer-link">
+            <svg viewBox="0 0 16 16"><path d="M3 2h6l4 4v8H3z M9 2v4h4 M3 13h10 M3 10h10"/></svg>
+            Manual completo
+          </a>
+          <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/AGENTS.md" target="_blank" rel="noopener" class="footer-link">
+            <svg viewBox="0 0 16 16"><path d="M3 2h6l4 4v8H3z M9 2v4h4 M3 13h10 M3 10h10"/></svg>
+            Diretrizes do agente
+          </a>
+          <a href="mailto:gustavo.braga@ufv.br" class="footer-link">
+            <svg viewBox="0 0 16 16"><path d="M2 4l6 5 6-5 M2 4h12v8H2z"/></svg>
+            Contato por email
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
