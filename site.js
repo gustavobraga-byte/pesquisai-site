@@ -4,6 +4,13 @@
 (function(){
   'use strict';
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var _i18n = window.PesquisAII18n || null;
+  function _t(key){
+    if (!_i18n) return key;
+    var l = document.documentElement.lang;
+    if (l === 'zh-CN') l = 'zh';
+    return _i18n.t(key, l);
+  }
 
   /* ── Barra de progresso de rolagem ── */
   var bar = document.getElementById('progressBar');
@@ -23,7 +30,7 @@
       var open = nav.classList.toggle('open');
       toggle.classList.toggle('active', open);
       toggle.setAttribute('aria-expanded', String(open));
-      toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+      toggle.setAttribute('aria-label', open ? _t('menu.close') : _t('menu.open'));
     });
     nav.querySelectorAll('a').forEach(function(a){
       a.addEventListener('click', function(){
@@ -74,7 +81,7 @@
   /* ── Copiar citações ── */
   function flash(btn, msg){
     var original = btn.textContent;
-    btn.textContent = msg;
+    btn.textContent = msg || _t('cit.copied');
     btn.classList.add('ok');
     setTimeout(function(){ btn.textContent = original; btn.classList.remove('ok'); }, 1800);
   }
@@ -85,7 +92,7 @@
       var text = target.innerText.replace(/^Copiar\s*/, '');
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(
-          function(){ flash(btn, 'Copiado!'); },
+          function(){ flash(btn); },
           function(){ fallbackCopy(text, btn); }
         );
       } else {
@@ -100,8 +107,8 @@
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); flash(btn, 'Copiado!'); }
-    catch (e) { flash(btn, 'Erro'); }
+    try { document.execCommand('copy'); flash(btn); }
+    catch (e) { flash(btn, _t('cit.copied')); }
     ta.remove();
   }
 

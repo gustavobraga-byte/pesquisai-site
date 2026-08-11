@@ -102,6 +102,34 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--teal);outline-offse
 .section-head h2{margin-top:var(--space-md)}
 .section-head p{margin-top:var(--space-md);font-size:1.05rem;line-height:1.7}
 
+/* ── Language selector (globo discreto + popover) ───────────── */
+.lang-wrap{position:relative;flex-shrink:0}
+.lang-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border:1px solid var(--line-strong);border-radius:var(--radius);
+  background:var(--surface);cursor:pointer;color:var(--ink-soft);
+  transition:border-color .15s,color .15s,background .15s;
+}
+.lang-btn:hover{border-color:var(--teal);color:var(--teal-dark)}
+.lang-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.lang-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lang-menu{
+  position:absolute;top:calc(100% + 8px);right:0;z-index:120;
+  min-width:160px;background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:var(--radius);box-shadow:0 16px 40px oklch(0 0 0 / 0.14);
+  padding:6px;display:none;flex-direction:column;gap:2px;
+}
+.lang-menu.open{display:flex}
+.lang-option{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  font-family:var(--font-sans);font-size:0.85rem;color:var(--ink);
+  background:none;border:none;border-radius:3px;padding:8px 10px;cursor:pointer;
+  transition:background .12s,color .12s;
+}
+.lang-option:hover{background:var(--teal-dim)}
+.lang-option.is-active{color:var(--teal-dark);font-weight:600}
+.lang-option.is-active::after{content:'✓';margin-left:auto;color:var(--teal-dark)}
+
 /* ── Scroll progress bar ───────────────────────────────────── */
 .progress-bar{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--teal),var(--amber));z-index:130;pointer-events:none}
 
@@ -117,11 +145,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--teal);outline-offse
 .topbar-brand img{width:24px;height:24px;display:block}
 .topbar-brand strong{font-weight:600}
 .topbar-brand em{font-style:normal;color:var(--teal-dark);font-weight:600}
-.topbar-nav{display:flex;gap:var(--space-md);align-items:center;flex-wrap:wrap}
-.topbar-link{font-family:var(--font-sans);font-size:0.82rem;color:var(--ink-muted);text-decoration:none;padding:6px 10px;border-radius:var(--radius);transition:color .15s,background .15s}
+.topbar-nav{display:flex;gap:4px;align-items:center;flex-wrap:nowrap}
+.topbar-link{font-family:var(--font-sans);font-size:0.78rem;color:var(--ink-muted);text-decoration:none;padding:5px 8px;border-radius:var(--radius);transition:color .15s,background .15s;white-space:nowrap}
 .topbar-link:hover{color:var(--teal-dark);background:var(--teal-dim)}
 .topbar-link.is-active{color:var(--teal-dark);background:var(--teal-dim)}
-.topbar-cta{font-family:var(--font-sans);font-size:0.78rem;font-weight:600;padding:8px 14px;border-radius:var(--radius);background:var(--amber);color:var(--ink);text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;transition:transform .15s,box-shadow .15s}
+.topbar-cta{font-family:var(--font-sans);font-size:0.74rem;font-weight:600;padding:7px 12px;border-radius:var(--radius);background:var(--amber);color:var(--ink);text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;transition:transform .15s,box-shadow .15s;white-space:nowrap}
 .topbar-cta:hover{transform:translateY(-1px);box-shadow:0 4px 16px oklch(0 0 0 / 0.15)}
 .menu-toggle{
   display:none;flex-direction:column;justify-content:center;gap:5px;
@@ -611,6 +639,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 .reveal.in-view{opacity:1;transform:none}
 
 /* ── Responsive ────────────────────────────────────────────── */
+@media(max-width:1150px){
+  .topbar-link--hide-md{display:none}
+}
 @media(max-width:960px){
   .menu-toggle{display:inline-flex}
   .topbar-nav{
@@ -650,6 +681,12 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
   .footer-right{align-items:flex-start}
 }
 @media(max-width:480px){
+  .topbar-inner{padding:10px 14px;gap:var(--space-sm)}
+  .topbar-brand{font-size:0.92rem}
+  .topbar-brand img{width:20px;height:20px}
+  .lang-wrap svg{display:none}
+  .lang-select{max-width:92px;padding:6px 12px 6px 10px;font-size:0.7rem}
+  .menu-toggle{width:38px;height:38px;padding:9px}
   .hero-ctas{flex-direction:column}
   .hero-cta{width:100%;justify-content:center}
   .hero-panel-caption span{font-size:0.66rem}
@@ -664,7 +701,7 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 </style>
 </head>
 <body>
-<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<a class="skip-link" href="#main" data-i18n="skip">Pular para o conteúdo</a>
 <div class="progress-bar" id="progressBar" aria-hidden="true"></div>
 
 <!-- ─── TOPBAR (sticky) ─────────────────────────────────── -->
@@ -675,18 +712,30 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
       PesquisAI
     </a>
     <nav class="topbar-nav" id="topNav" aria-label="Navegação principal">
-      <a href="#start" class="topbar-link">Começar</a>
-      <a href="#evidence" class="topbar-link">Evidência</a>
-      <a href="#output" class="topbar-link">Exemplo</a>
-      <a href="#workflow" class="topbar-link">Pipeline</a>
-      <a href="#skills" class="topbar-link">Skills</a>
-      <a href="#deliverables" class="topbar-link">Entregas</a>
-      <a href="#experience" class="topbar-link">Interface</a>
-      <a href="#arch" class="topbar-link">Arquitetura</a>
+      <a href="#start" class="topbar-link" data-i18n="nav.comecar">Começar</a>
+      <a href="#evidence" class="topbar-link" data-i18n="nav.evidencia">Evidência</a>
+      <a href="#output" class="topbar-link" data-i18n="nav.exemplo">Exemplo</a>
+      <a href="#workflow" class="topbar-link" data-i18n="nav.pipeline">Pipeline</a>
+      <a href="#skills" class="topbar-link" data-i18n="nav.skills">Skills</a>
+      <a href="#deliverables" class="topbar-link topbar-link--hide-md" data-i18n="nav.entregas">Entregas</a>
+      <a href="#experience" class="topbar-link topbar-link--hide-md" data-i18n="nav.interface">Interface</a>
+      <a href="#arch" class="topbar-link" data-i18n="nav.arquitetura">Arquitetura</a>
       <a href="https://github.com/gustavobraga-byte/PesquisAI" target="_blank" rel="noopener" class="topbar-link">GitHub</a>
-      <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="topbar-cta">Abrir no Colab</a>
+      <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="topbar-cta" data-i18n="nav.colab">Abrir no Colab</a>
     </nav>
-    <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="topNav" aria-label="Abrir menu">
+    <div class="lang-wrap" id="langWrap">
+      <button class="lang-btn" id="langBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Idioma" title="Idioma" data-i18n-attr="lang.label">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2a9.3 9.3 0 0 1 2.5 6A9.3 9.3 0 0 1 8 14a9.3 9.3 0 0 1-2.5-6A9.3 9.3 0 0 1 8 2z"/></svg>
+      </button>
+      <div class="lang-menu" id="langMenu" role="menu" aria-label="Idioma">
+        <button class="lang-option" type="button" role="menuitem" data-lang="pt">Português</button>
+        <button class="lang-option" type="button" role="menuitem" data-lang="en">English</button>
+        <button class="lang-option" type="button" role="menuitem" data-lang="fr">Français</button>
+        <button class="lang-option" type="button" role="menuitem" data-lang="es">Español</button>
+        <button class="lang-option" type="button" role="menuitem" data-lang="zh">简体中文</button>
+      </div>
+    </div>
+    <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="topNav" aria-label="Abrir menu" data-i18n-attr="menu.open">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -703,40 +752,40 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           <svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M13 2L6 13 3 8"/></svg>
           v0.5.1.9 · UFV · SisPPG 10356285004
         </div>
-        <h1>Pesquisa <em>científica</em><br>com integridade.</h1>
-        <p class="hero-sub">
+        <h1 data-i18n-html="hero.h1">Pesquisa <em>científica</em><br>com integridade.</h1>
+        <p class="hero-sub" data-i18n-html="hero.sub">
           Ecossistema de agentes de IA construído sobre a arquitetura <strong>OpenCode</strong>, projetado para pesquisadores brasileiros. Coleta dados reais de IBGE, DataSUS e agrobr, mantém memória persistente no Obsidian e produz conteúdo acadêmico conforme normas ABNT/UFV.
         </p>
         <div class="hero-ctas">
           <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="hero-cta">
             <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M2 13h12M9 3l3 3-3 3M14 6H5a3 3 0 0 0-3 3v1"/></svg>
-            Começar no Colab
+            <span data-i18n="hero.cta.colab">Começar no Colab</span>
           </a>
           <a href="#start" class="hero-cta hero-cta--ghost">
             <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M5 3l8 5-8 5z"/></svg>
-            Assistir tutorial
+            <span data-i18n="hero.cta.tutorial">Assistir tutorial</span>
           </a>
           <a href="#output" class="hero-cta hero-cta--ghost">
             <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Ver exemplo real
+            <span data-i18n="hero.cta.exemplo">Ver exemplo real</span>
           </a>
         </div>
         <div class="hero-trust">
           <span class="hero-trust-item">
             <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4"/></svg>
-            Fontes verificadas
+            <span data-i18n="hero.trust.1">Fontes verificadas</span>
           </span>
           <span class="hero-trust-item">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12L12 4M12 12L4 4"/></svg>
-            Zero fabricação
+            <span data-i18n="hero.trust.2">Zero fabricação</span>
           </span>
           <span class="hero-trust-item">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v5l3 2"/></svg>
-            Memória persistente
+            <span data-i18n="hero.trust.3">Memória persistente</span>
           </span>
           <span class="hero-trust-item">
             <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4"/></svg>
-            Normas ABNT/UFV
+            <span data-i18n="hero.trust.4">Normas ABNT/UFV</span>
           </span>
         </div>
       </div>
@@ -744,14 +793,14 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
         <div class="hero-panel">
           <div class="hero-panel-bar">
             <i></i><i></i><i></i>
-            <span>pesquisai — ambiente do agente</span>
+            <span data-i18n="hero.panel.bar">pesquisai — ambiente do agente</span>
           </div>
           <div class="hero-panel-body">
-            <img src="ambiente.png" alt="Ambiente do PesquisAI — terminal do agente em execução">
+            <img src="ambiente.png" alt="Ambiente do PesquisAI — terminal do agente em execução" data-i18n-attr="hero.panel.alt">
           </div>
           <div class="hero-panel-caption">
             <strong>PesquisAI</strong>
-            <span>ecossistema de pesquisa</span>
+            <span data-i18n="hero.panel.cap">ecossistema de pesquisa</span>
           </div>
         </div>
       </div>
@@ -765,23 +814,23 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
     <div class="statsbar-grid">
       <div class="statsbar-item">
         <div class="statsbar-value">161</div>
-        <div class="statsbar-label">Scientific skills</div>
+        <div class="statsbar-label" data-i18n="stats.skills">Scientific skills</div>
       </div>
       <div class="statsbar-item">
         <div class="statsbar-value">9</div>
-        <div class="statsbar-label">Módulos brasileiros</div>
+        <div class="statsbar-label" data-i18n="stats.modulos">Módulos brasileiros</div>
       </div>
       <div class="statsbar-item">
         <div class="statsbar-value">100+</div>
-        <div class="statsbar-label">Bases científicas</div>
+        <div class="statsbar-label" data-i18n="stats.bases">Bases científicas</div>
       </div>
       <div class="statsbar-item">
         <div class="statsbar-value">38+</div>
-        <div class="statsbar-label">Base de dados oficiais</div>
+        <div class="statsbar-label" data-i18n="stats.fontes">Base de dados oficiais</div>
       </div>
       <div class="statsbar-item">
         <div class="statsbar-value">100%</div>
-        <div class="statsbar-label">Política zero-fabricação</div>
+        <div class="statsbar-label" data-i18n="stats.zerofab">Política zero-fabricação</div>
       </div>
     </div>
   </div>
@@ -791,20 +840,20 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="start" id="start">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow" style="color:oklch(0.75 0.12 185)">Comece agora</div>
-      <h2>Seu primeiro passo no PesquisAI.</h2>
-      <p>Três caminhos para entrar no ecossistema: o tutorial em vídeo para o primeiro uso, a apresentação interativa com a visão geral do projeto e o notebook no Colab para colocar a mão na massa.</p>
+      <div class="eyebrow" style="color:oklch(0.75 0.12 185)" data-i18n="start.eyebrow">Comece agora</div>
+      <h2 data-i18n="start.h2">Seu primeiro passo no PesquisAI.</h2>
+      <p data-i18n="start.p">Três caminhos para entrar no ecossistema: o tutorial em vídeo para o primeiro uso, a apresentação interativa com a visão geral do projeto e o notebook no Colab para colocar a mão na massa.</p>
     </div>
     <div class="start-grid">
       <div class="start-video-col reveal">
         <div class="video-frame">
-          <a class="video-facade" href="https://www.youtube.com/watch?v=8e8spp_7Gq4" target="_blank" rel="noopener" aria-label="Assistir ao tutorial PesquisAI no YouTube (abre em nova aba)" style="background-image:url('https://i.ytimg.com/vi/8e8spp_7Gq4/maxresdefault.jpg')">
+          <a class="video-facade" href="https://www.youtube.com/watch?v=8e8spp_7Gq4" target="_blank" rel="noopener" aria-label="Assistir ao tutorial PesquisAI no YouTube (abre em nova aba)" data-i18n-attr="video.noscript" style="background-image:url('https://i.ytimg.com/vi/8e8spp_7Gq4/maxresdefault.jpg')">
             <span class="video-play" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M6 3l16 9-16 9z"/></svg>
             </span>
             <span class="video-caption">
-              <strong>Tutorial PesquisAI: como usar pela primeira vez</strong>
-              <span>Abrir no YouTube · PPGER — Programa de Pós-Graduação em Extensão Rural (UFV)</span>
+              <strong data-i18n="video.title">Tutorial PesquisAI: como usar pela primeira vez</strong>
+              <span data-i18n="video.channel">Abrir no YouTube · PPGER — Programa de Pós-Graduação em Extensão Rural (UFV)</span>
             </span>
           </a>
           <noscript>
@@ -814,36 +863,36 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
         <div class="video-meta">
           <a href="https://www.youtube.com/watch?v=8e8spp_7Gq4" target="_blank" rel="noopener">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13h12M9 3l3 3-3 3M14 6H5a3 3 0 0 0-3 3v1"/></svg>
-            Assistir direto no YouTube
+            <span data-i18n="video.meta.link">Assistir direto no YouTube</span>
           </a>
-          <span>Vídeo oficial de primeiro uso · o canal desativa a incorporação; a reprodução ocorre no YouTube</span>
+          <span data-i18n="video.meta.note">Vídeo oficial de primeiro uso · o canal desativa a incorporação; a reprodução ocorre no YouTube</span>
         </div>
       </div>
       <div class="start-stack">
         <a href="https://apresentacao-pesquisai.vercel.app/" target="_blank" rel="noopener" class="start-card reveal">
-          <span class="start-card-tag">Apresentação interativa</span>
-          <h3>Conheça o projeto em slides</h3>
-          <p>O pitch completo do PesquisAI em uma apresentação navegável: o problema, os diferenciais, os módulos brasileiros e o roadmap do ecossistema.</p>
+          <span class="start-card-tag" data-i18n="start.card1.tag">Apresentação interativa</span>
+          <h3 data-i18n="start.card1.h3">Conheça o projeto em slides</h3>
+          <p data-i18n="start.card1.p">O pitch completo do PesquisAI em uma apresentação navegável: o problema, os diferenciais, os módulos brasileiros e o roadmap do ecossistema.</p>
           <span class="start-card-cta">
-            Abrir apresentação
+            <span data-i18n="start.card1.cta">Abrir apresentação</span>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12L12 4M12 12V4H4"/></svg>
           </span>
         </a>
         <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="start-card reveal">
-          <span class="start-card-tag">Google Colab</span>
-          <h3>Use agora, sem instalar nada</h3>
-          <p>Abra o notebook oficial, execute as células e converse com o agente em minutos — ambiente completo hospedado na nuvem do Google.</p>
+          <span class="start-card-tag" data-i18n="start.card2.tag">Google Colab</span>
+          <h3 data-i18n="start.card2.h3">Use agora, sem instalar nada</h3>
+          <p data-i18n="start.card2.p">Abra o notebook oficial, execute as células e converse com o agente em minutos — ambiente completo hospedado na nuvem do Google.</p>
           <span class="start-card-cta">
-            Abrir notebook
+            <span data-i18n="start.card2.cta">Abrir notebook</span>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12L12 4M12 12V4H4"/></svg>
           </span>
         </a>
         <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/MANUAL.md" target="_blank" rel="noopener" class="start-card reveal">
-          <span class="start-card-tag">Documentação</span>
-          <h3>Manual completo</h3>
-          <p>Guia detalhado de uso, instalação local e referência de comandos para quem quer ir além do primeiro contato.</p>
+          <span class="start-card-tag" data-i18n="start.card3.tag">Documentação</span>
+          <h3 data-i18n="start.card3.h3">Manual completo</h3>
+          <p data-i18n="start.card3.p">Guia detalhado de uso, instalação local e referência de comandos para quem quer ir além do primeiro contato.</p>
           <span class="start-card-cta">
-            Ler o manual
+            <span data-i18n="start.card3.cta">Ler o manual</span>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12L12 4M12 12V4H4"/></svg>
           </span>
         </a>
@@ -853,22 +902,22 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
       <div class="start-step">
         <div class="start-step-num">1</div>
         <div class="start-step-body">
-          <strong>Assista ao tutorial</strong>
-          <span>O vídeo mostra o primeiro uso, do zero, no ambiente oficial do projeto.</span>
+          <strong data-i18n="start.step1.t">Assista ao tutorial</strong>
+          <span data-i18n="start.step1.d">O vídeo mostra o primeiro uso, do zero, no ambiente oficial do projeto.</span>
         </div>
       </div>
       <div class="start-step">
         <div class="start-step-num">2</div>
         <div class="start-step-body">
-          <strong>Abra o notebook no Colab</strong>
-          <span>Execute as células de instalação para iniciar o ambiente do agente.</span>
+          <strong data-i18n="start.step2.t">Abra o notebook no Colab</strong>
+          <span data-i18n="start.step2.d">Execute as células de instalação para iniciar o ambiente do agente.</span>
         </div>
       </div>
       <div class="start-step">
         <div class="start-step-num">3</div>
         <div class="start-step-body">
-          <strong>Faça sua primeira pergunta</strong>
-          <span>Peça dados, revisões ou formatação — a fonte vem junto com a resposta.</span>
+          <strong data-i18n="start.step3.t">Faça sua primeira pergunta</strong>
+          <span data-i18n="start.step3.d">Peça dados, revisões ou formatação — a fonte vem junto com a resposta.</span>
         </div>
       </div>
     </div>
@@ -878,25 +927,25 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="evidence" id="evidence">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">Política de transparência</div>
-      <h2>Você sempre sabe a origem do que recebe.</h2>
-      <p class="text-muted">Cada resposta carrega um marcador explícito. Pesquisadores treinados a desconfiar de afirmações sem fonte encontram no PesquisAI um aliado, não mais um sistema opaco.</p>
+      <div class="eyebrow" data-i18n="ev.eyebrow">Política de transparência</div>
+      <h2 data-i18n="ev.h2">Você sempre sabe a origem do que recebe.</h2>
+      <p class="text-muted" data-i18n="ev.p">Cada resposta carrega um marcador explícito. Pesquisadores treinados a desconfiar de afirmações sem fonte encontram no PesquisAI um aliado, não mais um sistema opaco.</p>
     </div>
     <div class="evidence-grid">
       <div class="evidence-card evidence-card--confirmed reveal">
-        <span class="evidence-label evidence-label--confirmed">● Dado confirmado</span>
-        <h3>Extraído de fonte primária</h3>
-        <p>O dado veio direto de uma skill habilitada — IBGE, DataSUS, PubMed, SciELO. Existe, foi consultado em tempo real, e tem referência rastreável até o documento original.</p>
+        <span class="evidence-label evidence-label--confirmed" data-i18n="ev.c1.label">● Dado confirmado</span>
+        <h3 data-i18n="ev.c1.h3">Extraído de fonte primária</h3>
+        <p data-i18n="ev.c1.p">O dado veio direto de uma skill habilitada — IBGE, DataSUS, PubMed, SciELO. Existe, foi consultado em tempo real, e tem referência rastreável até o documento original.</p>
       </div>
       <div class="evidence-card evidence-card--estimated reveal">
-        <span class="evidence-label evidence-label--estimated">● Estimativa fundamentada</span>
-        <h3>Inferência explicitada</h3>
-        <p>Quando o dado exato não está disponível, o PesquisAI informa que se trata de uma estimativa e documenta a metodologia usada para chegar ao valor. Nada escondido.</p>
+        <span class="evidence-label evidence-label--estimated" data-i18n="ev.c2.label">● Estimativa fundamentada</span>
+        <h3 data-i18n="ev.c2.h3">Inferência explicitada</h3>
+        <p data-i18n="ev.c2.p">Quando o dado exato não está disponível, o PesquisAI informa que se trata de uma estimativa e documenta a metodologia usada para chegar ao valor. Nada escondido.</p>
       </div>
       <div class="evidence-card evidence-card--insufficient reveal">
-        <span class="evidence-label evidence-label--insufficient">● Sem dados suficientes</span>
-        <h3>Limite reconhecido</h3>
-        <p>Se as fontes não retornam o que você precisa, o sistema declara explicitamente a ausência e recomenda onde buscar. Inventar seria mais fácil — e é proibido.</p>
+        <span class="evidence-label evidence-label--insufficient" data-i18n="ev.c3.label">● Sem dados suficientes</span>
+        <h3 data-i18n="ev.c3.h3">Limite reconhecido</h3>
+        <p data-i18n="ev.c3.p">Se as fontes não retornam o que você precisa, o sistema declara explicitamente a ausência e recomenda onde buscar. Inventar seria mais fácil — e é proibido.</p>
       </div>
     </div>
   </div>
@@ -907,53 +956,53 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
   <div class="container">
     <div class="sample-grid">
       <div class="sample-text reveal">
-        <div class="eyebrow" style="color:oklch(0.75 0.12 185)">Exemplo real · resposta do PesquisAI</div>
-        <h2 style="color:var(--hero-text)">Veja o que uma resposta entrega.</h2>
-        <p>À direita, um exemplo real de como o PesquisAI responde a uma pergunta sobre dados demográficos. O marcador de evidência está visível, a fonte está documentada, os dados têm referência rastreável.</p>
+        <div class="eyebrow" style="color:oklch(0.75 0.12 185)" data-i18n="sample.eyebrow">Exemplo real · resposta do PesquisAI</div>
+        <h2 style="color:var(--hero-text)" data-i18n="sample.h2">Veja o que uma resposta entrega.</h2>
+        <p data-i18n="sample.p">À direita, um exemplo real de como o PesquisAI responde a uma pergunta sobre dados demográficos. O marcador de evidência está visível, a fonte está documentada, os dados têm referência rastreável.</p>
         <ul class="sample-features">
           <li>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8l3 3 7-7"/></svg>
-            Marcador de evidência explícito em cada resposta
+            <span data-i18n="sample.f1">Marcador de evidência explícito em cada resposta</span>
           </li>
           <li>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8l3 3 7-7"/></svg>
-            Dados tabulares formatados, não colados em prosa
+            <span data-i18n="sample.f2">Dados tabulares formatados, não colados em prosa</span>
           </li>
           <li>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8l3 3 7-7"/></svg>
-            Fonte primária linkada com DOI ou URL oficial
+            <span data-i18n="sample.f3">Fonte primária linkada com DOI ou URL oficial</span>
           </li>
           <li>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8l3 3 7-7"/></svg>
-            Nenhuma inferência sem metodologia declarada
+            <span data-i18n="sample.f4">Nenhuma inferência sem metodologia declarada</span>
           </li>
           <li>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8l3 3 7-7"/></svg>
-            Arquivo resultante salvo no Google Drive
+            <span data-i18n="sample.f5">Arquivo resultante salvo no Google Drive</span>
           </li>
         </ul>
       </div>
       <div class="sample-card reveal">
         <div class="sample-card-head">
-          <span class="sample-prompt">pergunta do pesquisador</span>
-          <span class="sample-marker">● Dado confirmado</span>
+          <span class="sample-prompt" data-i18n="sample.prompt">pergunta do pesquisador</span>
+          <span class="sample-marker" data-i18n="ev.c1.label">● Dado confirmado</span>
         </div>
         <div class="sample-question">
-          "Qual a população estimada e o IDH de Viçosa, MG, segundo o último censo?"
+          <span data-i18n="sample.question">"Qual a população estimada e o IDH de Viçosa, MG, segundo o último censo?"</span>
         </div>
         <div class="sample-answer">
-          <p>Segundo o Censo Demográfico 2022 do IBGE, o município de Viçosa (MG) apresenta os seguintes indicadores:</p>
+          <p data-i18n="sample.a1">Segundo o Censo Demográfico 2022 do IBGE, o município de Viçosa (MG) apresenta os seguintes indicadores:</p>
           <dl class="sample-data">
-            <dt>População</dt><dd>76.381 habitantes</dd>
-            <dt>Densidade</dt><dd>296,1 hab/km²</dd>
-            <dt>IDH-M (2010)</dt><dd>0,775</dd>
-            <dt>Faixa IDH</dt><dd>Alto — PNUD/Atlas BR</dd>
+            <dt data-i18n="sample.dt.pop">População</dt><dd data-i18n="sample.dd.pop">76.381 habitantes</dd>
+            <dt data-i18n="sample.dt.dens">Densidade</dt><dd data-i18n="sample.dd.dens">296,1 hab/km²</dd>
+            <dt data-i18n="sample.dt.idh">IDH-M (2010)</dt><dd data-i18n="sample.dd.idh">0,775</dd>
+            <dt data-i18n="sample.dt.faixa">Faixa IDH</dt><dd data-i18n="sample.dd.faixa">Alto — PNUD/Atlas BR</dd>
           </dl>
-          <p>A queda populacional observada entre 2010 e 2022 reflete o envelhecimento da população universitária e o êxodo de famílias jovens para municípios vizinhos com maior oferta habitacional.</p>
+          <p data-i18n="sample.a2">A queda populacional observada entre 2010 e 2022 reflete o envelhecimento da população universitária e o êxodo de famílias jovens para municípios vizinhos com maior oferta habitacional.</p>
         </div>
         <div class="sample-source">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5"/><path d="M6 3a5 5 0 0 0-7.07 0L-2.48 4.41a5 5 0 0 0 7.07 7.07L6 11"/></svg>
-          Fonte: SIDRA tab. 9514 (IBGE, 2022) · IPEADATA · PNUD/Atlas BR (2010)
+          <span data-i18n="sample.source">Fonte: SIDRA tab. 9514 (IBGE, 2022) · IPEADATA · PNUD/Atlas BR (2010)</span>
         </div>
       </div>
     </div>
@@ -964,93 +1013,93 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="workflow" id="workflow">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">Pipeline de pesquisa</div>
-      <h2>Seis etapas, executadas a cada consulta.</h2>
-      <p class="text-muted">Sem atalhos, sem silêncios. Você acompanha cada movimento do agente.</p>
+      <div class="eyebrow" data-i18n="wf.eyebrow">Pipeline de pesquisa</div>
+      <h2 data-i18n="wf.h2">Seis etapas, executadas a cada consulta.</h2>
+      <p class="text-muted" data-i18n="wf.p">Sem atalhos, sem silêncios. Você acompanha cada movimento do agente.</p>
     </div>
     <div class="workflow-list">
       <div class="workflow-step workflow-step--odd reveal">
         <div class="workflow-step-content">
-          <div class="workflow-step-eyebrow">Etapa 01</div>
-          <h3>Compreensão</h3>
-          <p>O agente analisa o tema, identifica que tipo de dado é necessário e quais fontes devem ser consultadas antes de iniciar a coleta.</p>
+          <div class="workflow-step-eyebrow" data-i18n-n="wf.etapa" data-n="01">Etapa 01</div>
+          <h3 data-i18n="wf.step1.h3">Compreensão</h3>
+          <p data-i18n="wf.step1.p">O agente analisa o tema, identifica que tipo de dado é necessário e quais fontes devem ser consultadas antes de iniciar a coleta.</p>
         </div>
         <div class="workflow-step-marker">
           <div class="workflow-step-num">01</div>
         </div>
         <div class="workflow-step-visual">
-          <strong>Saída</strong>
-          mapa de fontes + escopo da pergunta
+          <strong data-i18n="wf.saida">Saída</strong>
+          <span data-i18n="wf.step1.out">mapa de fontes + escopo da pergunta</span>
         </div>
       </div>
       <div class="workflow-step workflow-step--even reveal">
         <div class="workflow-step-visual">
-          <strong>Saída</strong>
-          dados brutos + metadados + DOI
+          <strong data-i18n="wf.saida">Saída</strong>
+          <span data-i18n="wf.step2.out">dados brutos + metadados + DOI</span>
         </div>
         <div class="workflow-step-marker">
           <div class="workflow-step-num">02</div>
         </div>
         <div class="workflow-step-content">
-          <div class="workflow-step-eyebrow">Etapa 02</div>
-          <h3>Coleta</h3>
-          <p>Skills especializadas consultam IBGE, DataSUS, agrobr, PubMed, SciELO, Lilacs e outras bases oficiais em tempo real, sem cache desatualizado.</p>
+          <div class="workflow-step-eyebrow" data-i18n-n="wf.etapa" data-n="02">Etapa 02</div>
+          <h3 data-i18n="wf.step2.h3">Coleta</h3>
+          <p data-i18n="wf.step2.p">Skills especializadas consultam IBGE, DataSUS, agrobr, PubMed, SciELO, Lilacs e outras bases oficiais em tempo real, sem cache desatualizado.</p>
         </div>
       </div>
       <div class="workflow-step workflow-step--odd reveal">
         <div class="workflow-step-content">
-          <div class="workflow-step-eyebrow">Etapa 03</div>
-          <h3>Validação</h3>
-          <p>Dados nacionais são cruzados com literatura internacional. Divergências entre fontes são sinalizadas, nunca ocultadas — quem decide é o pesquisador.</p>
+          <div class="workflow-step-eyebrow" data-i18n-n="wf.etapa" data-n="03">Etapa 03</div>
+          <h3 data-i18n="wf.step3.h3">Validação</h3>
+          <p data-i18n="wf.step3.p">Dados nacionais são cruzados com literatura internacional. Divergências entre fontes são sinalizadas, nunca ocultadas — quem decide é o pesquisador.</p>
         </div>
         <div class="workflow-step-marker">
           <div class="workflow-step-num">03</div>
         </div>
         <div class="workflow-step-visual">
-          <strong>Saída</strong>
-          tabela cruzada com divergências marcadas
+          <strong data-i18n="wf.saida">Saída</strong>
+          <span data-i18n="wf.step3.out">tabela cruzada com divergências marcadas</span>
         </div>
       </div>
       <div class="workflow-step workflow-step--even reveal">
         <div class="workflow-step-visual">
-          <strong>Saída</strong>
-          esboço com referências ordenadas
+          <strong data-i18n="wf.saida">Saída</strong>
+          <span data-i18n="wf.step4.out">esboço com referências ordenadas</span>
         </div>
         <div class="workflow-step-marker">
           <div class="workflow-step-num">04</div>
         </div>
         <div class="workflow-step-content">
-          <div class="workflow-step-eyebrow">Etapa 04</div>
-          <h3>Síntese</h3>
-          <p>Informações de múltiplas fontes são integradas em uma narrativa coesa, com referências rastreáveis e cadeia causal entre os achados.</p>
+          <div class="workflow-step-eyebrow" data-i18n-n="wf.etapa" data-n="04">Etapa 04</div>
+          <h3 data-i18n="wf.step4.h3">Síntese</h3>
+          <p data-i18n="wf.step4.p">Informações de múltiplas fontes são integradas em uma narrativa coesa, com referências rastreáveis e cadeia causal entre os achados.</p>
         </div>
       </div>
       <div class="workflow-step workflow-step--odd reveal">
         <div class="workflow-step-content">
-          <div class="workflow-step-eyebrow">Etapa 05</div>
-          <h3>Redação</h3>
-          <p>O conteúdo é redigido em linguagem científica precisa, com citações no formato ABNT, APA ou Vancouver — conforme a escolha do pesquisador.</p>
+          <div class="workflow-step-eyebrow" data-i18n-n="wf.etapa" data-n="05">Etapa 05</div>
+          <h3 data-i18n="wf.step5.h3">Redação</h3>
+          <p data-i18n="wf.step5.p">O conteúdo é redigido em linguagem científica precisa, com citações no formato ABNT, APA ou Vancouver — conforme a escolha do pesquisador.</p>
         </div>
         <div class="workflow-step-marker">
           <div class="workflow-step-num">05</div>
         </div>
         <div class="workflow-step-visual">
-          <strong>Saída</strong>
-          texto formatado NBR 14724 / 6023 / 10520
+          <strong data-i18n="wf.saida">Saída</strong>
+          <span data-i18n="wf.step5.out">texto formatado NBR 14724 / 6023 / 10520</span>
         </div>
       </div>
       <div class="workflow-step workflow-step--even reveal">
         <div class="workflow-step-visual">
-          <strong>Saída</strong>
-          arquivo .md + versão .pdf no Google Drive
+          <strong data-i18n="wf.saida">Saída</strong>
+          <span data-i18n="wf.step6.out">arquivo .md + versão .pdf no Google Drive</span>
         </div>
         <div class="workflow-step-marker">
           <div class="workflow-step-num">06</div>
         </div>
         <div class="workflow-step-content">
-          <div class="workflow-step-eyebrow">Etapa 06</div>
-          <h3>Entrega</h3>
-          <p>O resultado inclui os arquivos gerados e a lista completa de fontes consultadas, com link direto para o Google Drive e nota de auditoria no vault.</p>
+          <div class="workflow-step-eyebrow" data-i18n-n="wf.etapa" data-n="06">Etapa 06</div>
+          <h3 data-i18n="wf.step6.h3">Entrega</h3>
+          <p data-i18n="wf.step6.p">O resultado inclui os arquivos gerados e a lista completa de fontes consultadas, com link direto para o Google Drive e nota de auditoria no vault.</p>
         </div>
       </div>
     </div>
@@ -1060,9 +1109,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="skills" id="skills">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">Módulos do ecossistema</div>
-      <h2>Nove módulos brasileiros, 161 scientific skills.</h2>
-      <p class="text-muted">Sobre a biblioteca <strong>Scientific Agent Skills</strong> (161 skills científicos e 100+ bases de dados indexadas do repositório <a href="https://github.com/K-Dense-AI/scientific-agent-skills" target="_blank" rel="noopener">K-Dense-AI</a>), o PesquisAI adiciona <strong>nove módulos próprios</strong> voltados ao contexto brasileiro — cada um conecta o agente a uma fonte ou capacidade específica, sempre sob a mesma política de transparência.</p>
+      <div class="eyebrow" data-i18n="skills.eyebrow">Módulos do ecossistema</div>
+      <h2 data-i18n="skills.h2">Nove módulos brasileiros, 161 scientific skills.</h2>
+      <p class="text-muted" data-i18n-html="skills.p">Sobre a biblioteca <strong>Scientific Agent Skills</strong> (161 skills científicos e 100+ bases de dados indexadas do repositório <a href="https://github.com/K-Dense-AI/scientific-agent-skills" target="_blank" rel="noopener">K-Dense-AI</a>), o PesquisAI adiciona <strong>nove módulos próprios</strong> voltados ao contexto brasileiro — cada um conecta o agente a uma fonte ou capacidade específica, sempre sob a mesma política de transparência.</p>
     </div>
     <div class="skills-grid">
 
@@ -1073,9 +1122,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">ibge-br</span>
         </div>
-        <h3>Dados IBGE</h3>
-        <p>Consulta automatizada à API do IBGE — Censo Demográfico, PNAD Contínua, PIB municipal, SIDRA, malhas geográficas, CNAE, nomes e calendário de pesquisas.</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill1.h3">Dados IBGE</h3>
+        <p data-i18n="skill1.p">Consulta automatizada à API do IBGE — Censo Demográfico, PNAD Contínua, PIB municipal, SIDRA, malhas geográficas, CNAE, nomes e calendário de pesquisas.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1085,9 +1134,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">opendatasus</span>
         </div>
-        <h3>DataSUS / OpenDataSUS</h3>
-        <p>Integração com 101 datasets do Ministério da Saúde — mortalidade, internações, vacinação, COVID-19, dengue, SINAN, SIH, SRAG, nascimentos e indicadores.</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill2.h3">DataSUS / OpenDataSUS</h3>
+        <p data-i18n="skill2.p">Integração com 101 datasets do Ministério da Saúde — mortalidade, internações, vacinação, COVID-19, dengue, SINAN, SIH, SRAG, nascimentos e indicadores.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1097,9 +1146,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">agrobr</span>
         </div>
-        <h3>Agro & Ambiente</h3>
-        <p>38+ fontes do agronegócio — CONAB, IBGE PAM/LSPA, ComexStat, CEPEA, MapBiomas, PRODES/DETER, SICAR/CAR, créditos rurais (SICOR), clima (NASA POWER, INMET).</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill3.h3">Agro & Ambiente</h3>
+        <p data-i18n="skill3.p">38+ fontes do agronegócio — CONAB, IBGE PAM/LSPA, ComexStat, CEPEA, MapBiomas, PRODES/DETER, SICAR/CAR, créditos rurais (SICOR), clima (NASA POWER, INMET).</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1109,9 +1158,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">dados-brasil</span>
         </div>
-        <h3>Dados Brasil</h3>
-        <p>Indicadores oficiais complementares — Banco Central (SELIC, IPCA, câmbio), Câmara, Senado, Portal da Transparência, TCU, TSE, ANP, ANTT, Anvisa, INEP, Atlas da Violência.</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill4.h3">Dados Brasil</h3>
+        <p data-i18n="skill4.p">Indicadores oficiais complementares — Banco Central (SELIC, IPCA, câmbio), Câmara, Senado, Portal da Transparência, TCU, TSE, ANP, ANTT, Anvisa, INEP, Atlas da Violência.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1121,9 +1170,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">UFV-ABNT</span>
         </div>
-        <h3>Formatação ABNT/UFV</h3>
-        <p>Normalização completa conforme NBR 14724/2024, NBR 6023/2018 e NBR 10520/2023 — TCCs, monografias, dissertações, teses, citações, referências, sumário e paginação.</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill5.h3">Formatação ABNT/UFV</h3>
+        <p data-i18n="skill5.p">Normalização completa conforme NBR 14724/2024, NBR 6023/2018 e NBR 10520/2023 — TCCs, monografias, dissertações, teses, citações, referências, sumário e paginação.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1133,9 +1182,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">analise-qualitativa</span>
         </div>
-        <h3>Análise Qualitativa</h3>
-        <p>Métodos clássicos e avançados — frequência de palavras, CHD (Reinert), análise de similitude, codificação temática, LDA, KWIC, sentimentos. Substitui NVivo e Iramuteq.</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill6.h3">Análise Qualitativa</h3>
+        <p data-i18n="skill6.p">Métodos clássicos e avançados — frequência de palavras, CHD (Reinert), análise de similitude, codificação temática, LDA, KWIC, sentimentos. Substitui NVivo e Iramuteq.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1145,9 +1194,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">scientific-skills</span>
         </div>
-        <h3>Skills científicas (K-Dense)</h3>
-        <p>Mineração de textos, revisão bibliográfica sistemática, suporte metodológico IMRAD, busca em PubMed, SciELO, Lilacs, Cochrane, arXiv, Semantic Scholar.</p>
-        <div class="skill-card-author">por <a href="https://github.com/K-Dense-AI" target="_blank" rel="noopener">@K-Dense-AI</a></div>
+        <h3 data-i18n="skill7.h3">Skills científicas (K-Dense)</h3>
+        <p data-i18n="skill7.p">Mineração de textos, revisão bibliográfica sistemática, suporte metodológico IMRAD, busca em PubMed, SciELO, Lilacs, Cochrane, arXiv, Semantic Scholar.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/K-Dense-AI" data-user="K-Dense-AI">por <a href="https://github.com/K-Dense-AI" target="_blank" rel="noopener">@K-Dense-AI</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1157,9 +1206,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">obsidian-memory</span>
         </div>
-        <h3>Memória Persistente</h3>
-        <p>Vault Obsidian no Google Drive — notas, dados e decisões persistem entre sessões. 10 templates, busca BM25 + semântica (RAG), taxonomia de tags, auditoria automática.</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill8.h3">Memória Persistente</h3>
+        <p data-i18n="skill8.p">Vault Obsidian no Google Drive — notas, dados e decisões persistem entre sessões. 10 templates, busca BM25 + semântica (RAG), taxonomia de tags, auditoria automática.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
       <div class="skill-card reveal">
@@ -1169,9 +1218,9 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
           </div>
           <span class="skill-card-tag">memorial-ufv</span>
         </div>
-        <h3>Memorial RSC-PCCTAE</h3>
-        <p>Geração automática do Memorial RSC-PCCTAE a partir do Relatório Detalhado emitido pelo sistema oficial da UFV. Lê o PDF, extrai dados e formata narrativa acadêmica UFV/ABNT.</p>
-        <div class="skill-card-author">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
+        <h3 data-i18n="skill9.h3">Memorial RSC-PCCTAE</h3>
+        <p data-i18n="skill9.p">Geração automática do Memorial RSC-PCCTAE a partir do Relatório Detalhado emitido pelo sistema oficial da UFV. Lê o PDF, extrai dados e formata narrativa acadêmica UFV/ABNT.</p>
+        <div class="skill-card-author" data-i18n-author data-url="https://github.com/gustavobraga-byte" data-user="gustavobraga-byte">por <a href="https://github.com/gustavobraga-byte" target="_blank" rel="noopener">@gustavobraga-byte</a></div>
       </div>
 
     </div>
@@ -1181,17 +1230,17 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="capabilities">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">Caixa de ferramentas</div>
-      <h2>Seis frentes, uma única metodologia.</h2>
-      <p class="text-muted">O PesquisAI reúne num só ambiente as ferramentas essenciais para a pesquisa acadêmica brasileira — todas com a mesma política de transparência e integridade.</p>
+      <div class="eyebrow" data-i18n="caps.eyebrow">Caixa de ferramentas</div>
+      <h2 data-i18n="caps.h2">Seis frentes, uma única metodologia.</h2>
+      <p class="text-muted" data-i18n="caps.p">O PesquisAI reúne num só ambiente as ferramentas essenciais para a pesquisa acadêmica brasileira — todas com a mesma política de transparência e integridade.</p>
     </div>
     <div class="caps-grid">
       <div class="caps-item reveal">
         <div class="caps-item-icon">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
-        <h3>Dados oficiais do Brasil</h3>
-        <p>38+ fontes públicas consultadas em tempo real: IBGE (Censo, PNAD, PIB), DataSUS (epidemiologia, mortalidade, vacinação), agrobr (preços, safra, desmatamento), Portal da Transparência.</p>
+        <h3 data-i18n="cap1.h3">Dados oficiais do Brasil</h3>
+        <p data-i18n="cap1.p">38+ fontes públicas consultadas em tempo real: IBGE (Censo, PNAD, PIB), DataSUS (epidemiologia, mortalidade, vacinação), agrobr (preços, safra, desmatamento), Portal da Transparência.</p>
         <div class="caps-item-tools">
           <span>SIDRA</span><span>SINAN</span><span>SIH</span><span>CONAB</span><span>CEPEA</span>
         </div>
@@ -1200,8 +1249,8 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
         <div class="caps-item-icon">
           <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         </div>
-        <h3>Revisão sistemática</h3>
-        <p>Busca em PubMed, SciELO, Lilacs, Cochrane, arXiv e Semantic Scholar com critérios de inclusão/exclusão explícitos. Extração estruturada de métodos, amostras e resultados.</p>
+        <h3 data-i18n="cap2.h3">Revisão sistemática</h3>
+        <p data-i18n="cap2.p">Busca em PubMed, SciELO, Lilacs, Cochrane, arXiv e Semantic Scholar com critérios de inclusão/exclusão explícitos. Extração estruturada de métodos, amostras e resultados.</p>
         <div class="caps-item-tools">
           <span>PRISMA</span><span>Cochrane</span><span>GRADE</span><span>PROSPERO</span>
         </div>
@@ -1210,8 +1259,8 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
         <div class="caps-item-icon">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
         </div>
-        <h3>Formatação ABNT/UFV</h3>
-        <p>Normalização completa de TCCs, monografias, dissertações e teses conforme NBR 14724/2024, NBR 6023/2018 e NBR 10520/2023. Citações, referências, sumário e paginação.</p>
+        <h3 data-i18n="cap3.h3">Formatação ABNT/UFV</h3>
+        <p data-i18n="cap3.p">Normalização completa de TCCs, monografias, dissertações e teses conforme NBR 14724/2024, NBR 6023/2018 e NBR 10520/2023. Citações, referências, sumário e paginação.</p>
         <div class="caps-item-tools">
           <span>NBR 14724</span><span>NBR 6023</span><span>NBR 10520</span>
         </div>
@@ -1220,8 +1269,8 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
         <div class="caps-item-icon">
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <h3>Análise qualitativa</h3>
-        <p>Frequência de palavras, CHD (método Reinert), análise de similitude, codificação temática, modelagem de tópicos (LDA). Substitui NVivo e Iramuteq com integração Python.</p>
+        <h3 data-i18n="cap4.h3">Análise qualitativa</h3>
+        <p data-i18n="cap4.p">Frequência de palavras, CHD (método Reinert), análise de similitude, codificação temática, modelagem de tópicos (LDA). Substitui NVivo e Iramuteq com integração Python.</p>
         <div class="caps-item-tools">
           <span>CHD</span><span>Reinert</span><span>LDA</span><span>IRaMuTeQ compat.</span>
         </div>
@@ -1230,8 +1279,8 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
         <div class="caps-item-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         </div>
-        <h3>Memória persistente</h3>
-        <p>Notas, dados e decisões metodológicas salvos em vault Obsidian no Google Drive. Busca semântica (RAG), continuidade entre sessões — o agente retoma o projeto de onde parou.</p>
+        <h3 data-i18n="cap5.h3">Memória persistente</h3>
+        <p data-i18n="cap5.p">Notas, dados e decisões metodológicas salvos em vault Obsidian no Google Drive. Busca semântica (RAG), continuidade entre sessões — o agente retoma o projeto de onde parou.</p>
         <div class="caps-item-tools">
           <span>Obsidian</span><span>Google Drive</span><span>RAG · FAISS</span>
         </div>
@@ -1240,8 +1289,8 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
         <div class="caps-item-icon">
           <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
         </div>
-        <h3>Código aberto</h3>
-        <p>Disponível no GitHub sob licença MIT. Auditável linha a linha, extensível, gratuito. Pesquisadores podem revisar a metodologia, sugerir mudanças e adaptar para suas áreas.</p>
+        <h3 data-i18n="cap6.h3">Código aberto</h3>
+        <p data-i18n="cap6.p">Disponível no GitHub sob licença MIT. Auditável linha a linha, extensível, gratuito. Pesquisadores podem revisar a metodologia, sugerir mudanças e adaptar para suas áreas.</p>
         <div class="caps-item-tools">
           <span>MIT license</span><span>Python</span><span>uv · OpenCode</span>
         </div>
@@ -1254,55 +1303,55 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="skills" id="deliverables">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">O que o PesquisAI entrega</div>
-      <h2>Nove formatos de saída acadêmica.</h2>
-      <p class="text-muted">Do artigo original à defesa de memorial — cada entrega segue normas ABNT/UFV e carrega marcadores de evidência rastreáveis em todo o texto.</p>
+      <div class="eyebrow" data-i18n="del.eyebrow">O que o PesquisAI entrega</div>
+      <h2 data-i18n="del.h2">Nove formatos de saída acadêmica.</h2>
+      <p class="text-muted" data-i18n="del.p">Do artigo original à defesa de memorial — cada entrega segue normas ABNT/UFV e carrega marcadores de evidência rastreáveis em todo o texto.</p>
     </div>
     <div class="skills-grid">
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">01</span></div>
-        <h3>Artigo Científico</h3>
-        <p>IMRaD completo (Introdução, Métodos, Resultados, Discussão) com citações formatadas em ABNT e referências validadas.</p>
+        <h3 data-i18n="del1.h3">Artigo Científico</h3>
+        <p data-i18n="del1.p">IMRaD completo (Introdução, Métodos, Resultados, Discussão) com citações formatadas em ABNT e referências validadas.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">02</span></div>
-        <h3>Revisão Sistemática</h3>
-        <p>Protocolo PRISMA, string de busca, triagem por critérios de inclusão/exclusão e síntese por eixos temáticos.</p>
+        <h3 data-i18n="del2.h3">Revisão Sistemática</h3>
+        <p data-i18n="del2.p">Protocolo PRISMA, string de busca, triagem por critérios de inclusão/exclusão e síntese por eixos temáticos.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">03</span></div>
-        <h3>Meta-Análise</h3>
-        <p>Síntese quantitativa de efeitos com forest plots e heterogeneidade — sobre evidências de múltiplos estudos.</p>
+        <h3 data-i18n="del3.h3">Meta-Análise</h3>
+        <p data-i18n="del3.p">Síntese quantitativa de efeitos com forest plots e heterogeneidade — sobre evidências de múltiplos estudos.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">04</span></div>
-        <h3>Dissertação / Tese</h3>
-        <p>Estrutura ABNT/UFV, capítulos, resumo e defesa — normalização completa do trabalho acadêmico.</p>
+        <h3 data-i18n="del4.h3">Dissertação / Tese</h3>
+        <p data-i18n="del4.p">Estrutura ABNT/UFV, capítulos, resumo e defesa — normalização completa do trabalho acadêmico.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">05</span></div>
-        <h3>Proposta de Projeto</h3>
-        <p>Edital, orçamento e cronograma para submissão a agências (CNPq, CAPES, FAPs) sob normas de chamada.</p>
+        <h3 data-i18n="del5.h3">Proposta de Projeto</h3>
+        <p data-i18n="del5.p">Edital, orçamento e cronograma para submissão a agências (CNPq, CAPES, FAPs) sob normas de chamada.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">06</span></div>
-        <h3>Relatório de Dados</h3>
-        <p>Tabelas, séries temporais e gráficos gerados a partir de IBGE, DataSUS e demais fontes brasileiras.</p>
+        <h3 data-i18n="del6.h3">Relatório de Dados</h3>
+        <p data-i18n="del6.p">Tabelas, séries temporais e gráficos gerados a partir de IBGE, DataSUS e demais fontes brasileiras.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">07</span></div>
-        <h3>Análise Qualitativa</h3>
-        <p>Método Reinert, similitude e codificação — substitui NVivo e Iramuteq em análises de conteúdo.</p>
+        <h3 data-i18n="del7.h3">Análise Qualitativa</h3>
+        <p data-i18n="del7.p">Método Reinert, similitude e codificação — substitui NVivo e Iramuteq em análises de conteúdo.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">08</span></div>
-        <h3>Hipóteses Testáveis</h3>
-        <p>Formulação de H₀/H₁, variáveis e plano de teste estatístico a partir de observações e literatura.</p>
+        <h3 data-i18n="del8.h3">Hipóteses Testáveis</h3>
+        <p data-i18n="del8.p">Formulação de H₀/H₁, variáveis e plano de teste estatístico a partir de observações e literatura.</p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">09</span></div>
-        <h3>Declaração de IA</h3>
-        <p>Transparência de uso de LLM conforme normas de periódicos e integridade científica (CNPq/CAPES).</p>
+        <h3 data-i18n="del9.h3">Declaração de IA</h3>
+        <p data-i18n="del9.p">Transparência de uso de LLM conforme normas de periódicos e integridade científica (CNPq/CAPES).</p>
       </div>
     </div>
   </div>
@@ -1312,28 +1361,28 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="capabilities" id="experience">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">A interface real</div>
-      <h2>Prompts de exemplo e respostas ilustrativas.</h2>
-      <p class="text-muted"><strong>Nota:</strong> os trechos abaixo reproduzem <em>exemplos de demonstração</em> do pitch do projeto. Não correspondem a consultas executadas ao vivo — servem para ilustrar o padrão de resposta do agente (fonte, marcador de evidência e link).</p>
+      <div class="eyebrow" data-i18n="exp.eyebrow">A interface real</div>
+      <h2 data-i18n="exp.h2">Prompts de exemplo e respostas ilustrativas.</h2>
+      <p class="text-muted" data-i18n-html="exp.note"><strong>Nota:</strong> os trechos abaixo reproduzem <em>exemplos de demonstração</em> do pitch do projeto. Não correspondem a consultas executadas ao vivo — servem para ilustrar o padrão de resposta do agente (fonte, marcador de evidência e link).</p>
     </div>
     <div class="skills-grid">
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">IBGE</span></div>
-        <h3>Gini por UF (2010–2022)</h3>
-        <p class="text-mono">"Gini por UF 2010 a 2022"</p>
-        <p>O Índice de Gini do Distrito Federal recuou de 0,563 para 0,514; o do Piauí, de 0,616 para 0,581 — convergência regional lenta. <em>[exemplo ilustrativo]</em></p>
+        <h3 data-i18n="exp1.h3">Gini por UF (2010–2022)</h3>
+        <p class="text-mono" data-i18n="exp1.prompt">"Gini por UF 2010 a 2022"</p>
+        <p data-i18n-html="exp1.p">O Índice de Gini do Distrito Federal recuou de 0,563 para 0,514; o do Piauí, de 0,616 para 0,581 — convergência regional lenta. <em>[exemplo ilustrativo]</em></p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">DataSUS</span></div>
-        <h3>Agrotóxicos por estado</h3>
-        <p class="text-mono">"Agrotóxicos por estado"</p>
-        <p>Mato Grosso lidera em volume comercializado; São Paulo, em variedade de princípios ativos registrados. <em>[exemplo ilustrativo]</em></p>
+        <h3 data-i18n="exp2.h3">Agrotóxicos por estado</h3>
+        <p class="text-mono" data-i18n="exp2.prompt">"Agrotóxicos por estado"</p>
+        <p data-i18n-html="exp2.p">Mato Grosso lidera em volume comercializado; São Paulo, em variedade de princípios ativos registrados. <em>[exemplo ilustrativo]</em></p>
       </div>
       <div class="skill-card reveal">
         <div class="skill-card-head"><span class="skill-card-tag">Scientific</span></div>
-        <h3>EGFR em câncer</h3>
-        <p class="text-mono">"EGFR em câncer"</p>
-        <p>A mutação KRAS G12C dirige a aprovação de inibidores; evidência do trial CodeBreaK 100. <em>[exemplo ilustrativo]</em></p>
+        <h3 data-i18n="exp3.h3">EGFR em câncer</h3>
+        <p class="text-mono" data-i18n="exp3.prompt">"EGFR em câncer"</p>
+        <p data-i18n-html="exp3.p">A mutação KRAS G12C dirige a aprovação de inibidores; evidência do trial CodeBreaK 100. <em>[exemplo ilustrativo]</em></p>
       </div>
     </div>
   </div>
@@ -1344,11 +1393,11 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="arch" id="arch">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow" style="color:oklch(0.75 0.12 185)">Arquitetura do sistema</div>
-      <h2>Como tudo se conecta.</h2>
-      <p>O PesquisAI roda sobre ttyd (terminal web) + OpenCode (runtime do agente, v1.17.18), com dependências gerenciadas pelo <code>uv</code> (Astral). Os <strong>nove módulos brasileiros</strong> operam sobre a biblioteca <strong>Scientific Agent Skills</strong> — <strong>161 skills científicos</strong> e <strong>100+ bases de dados</strong> indexadas —, todas plugáveis.</p>
+      <div class="eyebrow" style="color:oklch(0.75 0.12 185)" data-i18n="arch.eyebrow">Arquitetura do sistema</div>
+      <h2 data-i18n="arch.h2">Como tudo se conecta.</h2>
+      <p data-i18n-html="arch.p">O PesquisAI roda sobre ttyd (terminal web) + OpenCode (runtime do agente, v1.17.18), com dependências gerenciadas pelo <code>uv</code> (Astral). Os <strong>nove módulos brasileiros</strong> operam sobre a biblioteca <strong>Scientific Agent Skills</strong> — <strong>161 skills científicos</strong> e <strong>100+ bases de dados</strong> indexadas —, todas plugáveis.</p>
     </div>
-<pre class="arch-diagram reveal"><span class="arch-key">Google Colab</span>
+<pre class="arch-diagram reveal" data-i18n-html="arch.diagram"><span class="arch-key">Google Colab</span>
 └── ttyd (terminal web na porta 8000)
     └── opencode (runtime do agente)
         ├── <span class="arch-key">skill-ibge</span>          <span class="arch-comment"># Consulta à API do IBGE</span>
@@ -1370,50 +1419,50 @@ footer{padding:var(--space-xl) 0 var(--space-lg);background:var(--surface);borde
 <section class="testimonials">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">Da comunidade acadêmica</div>
-      <h2>Por que a integridade importa.</h2>
-      <p class="text-muted">Vozes representativas de personas que usam ferramentas de pesquisa assistida por IA em seu trabalho.</p>
+      <div class="eyebrow" data-i18n="tes.eyebrow">Da comunidade acadêmica</div>
+      <h2 data-i18n="tes.h2">Por que a integridade importa.</h2>
+      <p class="text-muted" data-i18n="tes.p">Vozes representativas de personas que usam ferramentas de pesquisa assistida por IA em seu trabalho.</p>
     </div>
     <div class="testimonials-list">
       <div class="testimonial reveal">
-        <p class="testimonial-quote">
+        <p class="testimonial-quote" data-i18n="tes1.quote">
        O PesquisAI entregou geoprocessamento de alto nível e em velocidade surpreendente. Em duas semanas, consegui processar dados suficientes para toda minha dissertação.
 </p>
         <div class="testimonial-author">
           <div class="testimonial-avatar">AC</div>
           <div class="testimonial-meta">
-            <strong>Estudante de pós-graduação</strong>
+            <strong data-i18n="tes1.role">Estudante de pós-graduação</strong>
             <span>Extensão Rural · UFV</span>
           </div>
         </div>
       </div>
       <div class="testimonial reveal">
-        <p class="testimonial-quote">
+        <p class="testimonial-quote" data-i18n="tes2.quote">
 A utilização da inteligência artificial PesquisAI, desenvolvida pelo Professor Gustavo, muda seu modo de pensar e desenvolver pesquisa. Fiz análises utilizando dados Geoespaciais, assim como análises em softwares GIS e em alguns minutos os dados foram revisados e aprimorados com produção de tabelas, mapas e texto coeso e com muita confiabilidade nas referências bibliográficas. O trabalho do pesquisador passa a ser identificar os dados da análise e quais as bases que devem ser analisadas. Nunca deixaremos de pensar e avaliar os dados, mas o mecânico da extração já podem ser feitas com essa IA gratuita e de excelência.
      </p>
         <div class="testimonial-author">
           <div class="testimonial-avatar">DI</div>
           <div class="testimonial-meta">
-            <strong>Professor Pesquisador</strong>
+            <strong data-i18n="tes2.role">Professor Pesquisador</strong>
             <span>Engenharia · IFBaiano</span>
           </div>
         </div>
       </div>
       <div class="testimonial reveal">
-        <p class="testimonial-quote">
+        <p class="testimonial-quote" data-i18n="tes3.quote">
 O programa é ótimo para busca e estruturação de artigos, dissertações e teses. A IA realiza as buscas sem alucinações e mostra as fontes consultadas.
         </p>
         <div class="testimonial-author">
           <div class="testimonial-avatar">IB</div>
           <div class="testimonial-meta">
-            <strong>Doutora</strong>
+            <strong data-i18n="tes3.role">Doutora</strong>
             <span>Química · Unicamp</span>
           </div>
         </div>
       </div>
     </div>
     <p class="testimonial-disclaimer reveal">
-      <strong>Nota editorial:</strong> Os depoimentos acima são representativos de personas típicas de usuários, elaborados a partir de padrões de uso observados durante desenvolvimento. Não correspondem a falas atribuíveis a pessoas específicas.
+      <span data-i18n-html="tes.disclaimer"><strong>Nota editorial:</strong> Os depoimentos acima são representativos de personas típicas de usuários, elaborados a partir de padrões de uso observados durante desenvolvimento. Não correspondem a falas atribuíveis a pessoas específicas.</span>
     </p>
   </div>
 </section>
@@ -1422,21 +1471,21 @@ O programa é ótimo para busca e estruturação de artigos, dissertações e te
 <section class="changelog" id="changelog">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">Histórico de versões</div>
-      <h2>O que mudou recentemente.</h2>
-      <p class="text-muted">Últimas cinco releases do PesquisAI. Histórico completo disponível no <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/CHANGELOG.md" target="_blank" rel="noopener" style="color:var(--teal-dark)">CHANGELOG.md</a> no GitHub.</p>
+      <div class="eyebrow" data-i18n="chg.eyebrow">Histórico de versões</div>
+      <h2 data-i18n="chg.h2">O que mudou recentemente.</h2>
+      <p class="text-muted" data-i18n-html="chg.p">Últimas cinco releases do PesquisAI. Histórico completo disponível no <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/CHANGELOG.md" target="_blank" rel="noopener" style="color:var(--teal-dark)">CHANGELOG.md</a> no GitHub.</p>
     </div>
     <div class="changelog-list">
 
       <div class="changelog-item reveal">
         <div class="changelog-version">0.5.1.9<small>2026-07-18</small></div>
         <div class="changelog-body">
-          <h3>3 Versão Offline para Linux e atualização do AGENTS.md</h3>
+          <h3 data-i18n="chg1.title">3 Versão Offline para Linux e atualização do AGENTS.md</h3>
           <ul>
-            <li><strong>Bugfix:</strong> Instalador offline para Linux</li>
-            <li><strong>Bugfix:</strong> Reescrita completa do AGENTS.md</li>
-            <li><strong>Feature:</strong> Nova arquitetura de diretórios</li>
-            <li>Fortalecimento de Integridade e Segurança</li>
+            <li data-i18n-html="chg1.b1"><strong>Bugfix:</strong> Instalador offline para Linux</li>
+            <li data-i18n-html="chg1.b2"><strong>Bugfix:</strong> Reescrita completa do AGENTS.md</li>
+            <li data-i18n-html="chg1.b3"><strong>Feature:</strong> Nova arquitetura de diretórios</li>
+            <li data-i18n-html="chg1.b4">Fortalecimento de Integridade e Segurança</li>
           </ul>
         </div>
       </div>
@@ -1444,12 +1493,12 @@ O programa é ótimo para busca e estruturação de artigos, dissertações e te
       <div class="changelog-item reveal">
         <div class="changelog-version">0.5.1.8<small>2026-07-10</small></div>
         <div class="changelog-body">
-          <h3>3 bugfixes + nova skill Memorial UFV</h3>
+          <h3 data-i18n="chg2.title">3 bugfixes + nova skill Memorial UFV</h3>
           <ul>
-            <li><strong>Bugfix:</strong> Botões de provedor (edit/delete) quebrados por SyntaxError em string Python</li>
-            <li><strong>Bugfix:</strong> Restauração de sessão agora reflete no terminal ttyd</li>
-            <li><strong>Feature:</strong> Confirmação antes de restaurar backup</li>
-            <li><strong>Nova skill:</strong> <code>skill-memorial-ufv</code> — Memorial RSC-PCCTAE UFV/ABNT</li>
+            <li data-i18n-html="chg2.b1"><strong>Bugfix:</strong> Botões de provedor (edit/delete) quebrados por SyntaxError em string Python</li>
+            <li data-i18n-html="chg2.b2"><strong>Bugfix:</strong> Restauração de sessão agora reflete no terminal ttyd</li>
+            <li data-i18n-html="chg2.b3"><strong>Feature:</strong> Confirmação antes de restaurar backup</li>
+            <li data-i18n-html="chg2.b4"><strong>Nova skill:</strong> <code>skill-memorial-ufv</code> — Memorial RSC-PCCTAE UFV/ABNT</li>
           </ul>
         </div>
       </div>
@@ -1457,12 +1506,12 @@ O programa é ótimo para busca e estruturação de artigos, dissertações e te
       <div class="changelog-item reveal">
         <div class="changelog-version">0.5.1.5<small>2026-07-01</small></div>
         <div class="changelog-body">
-          <h3>Editor de Memória Obsidian no botão 🧠</h3>
+          <h3 data-i18n="chg3.title">Editor de Memória Obsidian no botão 🧠</h3>
           <ul>
-            <li>Modal split view: lista de notas + editor markdown (Edit / Preview / Split)</li>
-            <li>4 endpoints REST novos para ler/criar/buscar/deletar notas</li>
-            <li>Preview markdown via <code>marked.js</code> com destaque de <code>[[wikilinks]]</code> e <code>#tags</code></li>
-            <li>20 novas chaves i18n (<code>memory.editor.*</code>) em 4 idiomas</li>
+            <li data-i18n-html="chg3.b1">Modal split view: lista de notas + editor markdown (Edit / Preview / Split)</li>
+            <li data-i18n-html="chg3.b2">4 endpoints REST novos para ler/criar/buscar/deletar notas</li>
+            <li data-i18n-html="chg3.b3">Preview markdown via <code>marked.js</code> com destaque de <code>[[wikilinks]]</code> e <code>#tags</code></li>
+            <li data-i18n-html="chg3.b4">20 novas chaves i18n (<code>memory.editor.*</code>) em 4 idiomas</li>
           </ul>
         </div>
       </div>
@@ -1470,12 +1519,12 @@ O programa é ótimo para busca e estruturação de artigos, dissertações e te
       <div class="changelog-item reveal">
         <div class="changelog-version">0.5.1<small>2026-06-29</small></div>
         <div class="changelog-body">
-          <h3>Obsidian Autopilot — o agente agora SALVA SOZINHO</h3>
+          <h3 data-i18n="chg4.title">Obsidian Autopilot — o agente agora SALVA SOZINHO</h3>
           <ul>
-            <li><code>pesquisai/obsidian/autopilot.py</code> — API de alto nível: recall, save, save_finding, start/end_session</li>
-            <li>Prompt do agente injeta instruções de autopilot</li>
-            <li>Daily note e MOC raiz criados automaticamente no vault</li>
-            <li>Tudo é <strong>no-op</strong> se o vault não estiver disponível</li>
+            <li data-i18n-html="chg4.b1"><code>pesquisai/obsidian/autopilot.py</code> — API de alto nível: recall, save, save_finding, start/end_session</li>
+            <li data-i18n-html="chg4.b2">Prompt do agente injeta instruções de autopilot</li>
+            <li data-i18n-html="chg4.b3">Daily note e MOC raiz criados automaticamente no vault</li>
+            <li data-i18n-html="chg4.b4">Tudo é <strong>no-op</strong> se o vault não estiver disponível</li>
           </ul>
         </div>
       </div>
@@ -1483,13 +1532,13 @@ O programa é ótimo para busca e estruturação de artigos, dissertações e te
       <div class="changelog-item reveal">
         <div class="changelog-version">0.5.0<small>2026-06-28</small></div>
         <div class="changelog-body">
-          <h3>Obsidian Second Brain — memória de longo prazo</h3>
+          <h3 data-i18n="chg5.title">Obsidian Second Brain — memória de longo prazo</h3>
           <ul>
-            <li>Módulo <code>pesquisai.obsidian</code> (8 arquivos, ~1.500 linhas)</li>
-            <li>10 templates Obsidian (daily, research, literature, session, methodology, datasource, hypothesis, reference, moc, inbox)</li>
-            <li>Busca BM25 offline + backlinks + wikilinks + tags</li>
-            <li>Taxonomia de tags <code>pesquisai/*</code> (19 tags oficiais)</li>
-            <li>71 testes pytest (100% passing) + teste e2e validado</li>
+            <li data-i18n-html="chg5.b1">Módulo <code>pesquisai.obsidian</code> (8 arquivos, ~1.500 linhas)</li>
+            <li data-i18n-html="chg5.b2">10 templates Obsidian (daily, research, literature, session, methodology, datasource, hypothesis, reference, moc, inbox)</li>
+            <li data-i18n-html="chg5.b3">Busca BM25 offline + backlinks + wikilinks + tags</li>
+            <li data-i18n-html="chg5.b4">Taxonomia de tags <code>pesquisai/*</code> (19 tags oficiais)</li>
+            <li data-i18n-html="chg5.b5">71 testes pytest (100% passing) + teste e2e validado</li>
           </ul>
         </div>
       </div>
@@ -1497,12 +1546,12 @@ O programa é ótimo para busca e estruturação de artigos, dissertações e te
       <div class="changelog-item reveal">
         <div class="changelog-version">0.4.0<small>2026-06-15</small></div>
         <div class="changelog-body">
-          <h3>Release inicial do PesquisAI</h3>
+          <h3 data-i18n="chg6.title">Release inicial do PesquisAI</h3>
           <ul>
-            <li>Agente de pesquisa científica via OpenCode</li>
-            <li>Integração IBGE, DataSUS, dados-brasil, agrobr</li>
-            <li>Wrapper HTML com ttyd + tema escuro "pesquisai"</li>
-            <li>Backup/restore de sessões · gerenciamento de provedores de IA · 4 idiomas</li>
+            <li data-i18n-html="chg6.b1">Agente de pesquisa científica via OpenCode</li>
+            <li data-i18n-html="chg6.b2">Integração IBGE, DataSUS, dados-brasil, agrobr</li>
+            <li data-i18n-html="chg6.b3">Wrapper HTML com ttyd + tema escuro "pesquisai"</li>
+            <li data-i18n-html="chg6.b4">Backup/restore de sessões · gerenciamento de provedores de IA · 4 idiomas</li>
           </ul>
         </div>
       </div>
@@ -1514,14 +1563,14 @@ O programa é ótimo para busca e estruturação de artigos, dissertações e te
 <section class="citation" id="citation">
   <div class="container">
     <div class="section-head reveal">
-      <div class="eyebrow">Como citar</div>
-      <h2>Use o PesquisAI com crédito.</h2>
-      <p class="text-muted">O uso do PesquisAI em trabalhos acadêmicos deve ser declarado conforme diretrizes do COPE, CAPES e principais periódicos. Escolha o formato abaixo.</p>
+      <div class="eyebrow" data-i18n="cit.eyebrow">Como citar</div>
+      <h2 data-i18n="cit.h2">Use o PesquisAI com crédito.</h2>
+      <p class="text-muted" data-i18n="cit.p">O uso do PesquisAI em trabalhos acadêmicos deve ser declarado conforme diretrizes do COPE, CAPES e principais periódicos. Escolha o formato abaixo.</p>
     </div>
     <div class="citation-grid">
 
       <div class="citation-block reveal" data-label="ABNT NBR 6023:2018" id="citeAbnt">
-        <button class="copy-btn" data-target="citeAbnt" type="button">Copiar</button>
+        <button class="copy-btn" data-target="citeAbnt" type="button" data-i18n="cit.copy">Copiar</button>
         <p>BRAGA, Gustavo Bastos. PesquisAI: agente de inteligência artificial para pesquisa científica. Versão 0.5.1.9. Viçosa: Universidade Federal de Viçosa, 2026. Disponível em: https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/. Acesso em: DD mês. AAAA.
 
 Projeto registrado no SisPPG/UFV sob nº 10356285004.
@@ -1529,7 +1578,7 @@ Verificar autenticidade em: http://sisppg.ufv.br</p>
       </div>
 
       <div class="citation-block reveal" data-label="BibTeX" id="citeBibtex">
-        <button class="copy-btn" data-target="citeBibtex" type="button">Copiar</button>
+        <button class="copy-btn" data-target="citeBibtex" type="button" data-i18n="cit.copy">Copiar</button>
         <p>@software{braga2026pesquisai,
   author       = {Gustavo Bastos Braga},
   title        = {{PesquisAI}: Agente de Intelig{\^e}ncia Artificial
@@ -1543,8 +1592,8 @@ Verificar autenticidade em: http://sisppg.ufv.br</p>
 
     </div>
     <p style="margin-top:var(--space-lg);font-family:var(--font-sans);font-size:0.85rem;color:var(--ink-muted);max-width:75ch;line-height:1.6">
-      Para modelos prontos de declaração de uso de IA (ABNT, ICMJE, Nature, Science, Elsevier, Springer), consulte o arquivo
-      <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/declaracao_uso_ia.md" target="_blank" rel="noopener" style="color:var(--teal-dark)">declaracao_uso_ia.md</a> no repositório.
+      <span data-i18n-html="cit.p2">Para modelos prontos de declaração de uso de IA (ABNT, ICMJE, Nature, Science, Elsevier, Springer), consulte o arquivo
+      <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/declaracao_uso_ia.md" target="_blank" rel="noopener" style="color:var(--teal-dark)">declaracao_uso_ia.md</a> no repositório.</span>
     </p>
   </div>
 </section>
@@ -1552,22 +1601,22 @@ Verificar autenticidade em: http://sisppg.ufv.br</p>
 <!-- ─── INTEGRITY ───────────────────────────────────────── -->
 <section class="integrity">
   <div class="container reveal">
-    <h2>Compromisso com a <em>integridade</em> científica.</h2>
-    <p>
+    <h2 data-i18n-html="int.h2">Compromisso com a <em>integridade</em> científica.</h2>
+    <p data-i18n="int.p">
       O PesquisAI opera sob uma política inegociável: nunca inventar dados, sempre declarar a fonte, sempre sinalizar a incerteza. Cada resposta é rastreável até sua origem.
     </p>
     <div class="integrity-stats">
       <div class="integrity-stat">
         <div class="integrity-stat-value">38+</div>
-        <div class="integrity-stat-label">Fontes oficiais brasileiras</div>
+        <div class="integrity-stat-label" data-i18n="int.s1">Fontes oficiais brasileiras</div>
       </div>
       <div class="integrity-stat">
         <div class="integrity-stat-value">3</div>
-        <div class="integrity-stat-label">Níveis de evidência explícitos</div>
+        <div class="integrity-stat-label" data-i18n="int.s2">Níveis de evidência explícitos</div>
       </div>
       <div class="integrity-stat">
         <div class="integrity-stat-value">100%</div>
-        <div class="integrity-stat-label">Política zero-fabricação</div>
+        <div class="integrity-stat-label" data-i18n="int.s3">Política zero-fabricação</div>
       </div>
     </div>
   </div>
@@ -1584,15 +1633,15 @@ Verificar autenticidade em: http://sisppg.ufv.br</p>
           <img src="ico.svg" alt="" aria-hidden="true">
           PesquisAI<small>v0.5.1.9</small>
         </div>
-        <div class="footer-tagline">Pesquisa científica com integridade — sempre.</div>
+        <div class="footer-tagline" data-i18n="foot.tagline">Pesquisa científica com integridade — sempre.</div>
         <div class="footer-credits">
-          Construído por <strong>Gustavo Bastos Braga</strong> · <strong>Universidade Federal de Viçosa (UFV)</strong>, Viçosa, MG · Brasil<br>
+          <span data-i18n-html="foot.credits">Construído por <strong>Gustavo Bastos Braga</strong> · <strong>Universidade Federal de Viçosa (UFV)</strong>, Viçosa, MG · Brasil<br>
           Registro SisPPG nº 10356285004 · Mantido em conformidade com os princípios de integridade científica da <strong>CAPES</strong> e <strong>CNPq</strong>.<br>
-          Contato: <a href="mailto:gustavo.braga@ufv.br">gustavo.braga@ufv.br</a>
+          Contato: <a href="mailto:gustavo.braga@ufv.br">gustavo.braga@ufv.br</a></span>
         </div>
         <div class="footer-meta">
           <span class="trust-chip">
-            <span class="trust-dot"></span>Integridade ativa
+            <span class="trust-dot"></span><span data-i18n="foot.chip1">Integridade ativa</span>
           </span>
           <span class="trust-chip">
             MIT license
@@ -1606,31 +1655,31 @@ Verificar autenticidade em: http://sisppg.ufv.br</p>
         <div class="footer-links">
           <a href="https://www.youtube.com/watch?v=8e8spp_7Gq4" target="_blank" rel="noopener" class="footer-link">
             <svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg>
-            Tutorial em vídeo (YouTube)
+            <span data-i18n="foot.l1">Tutorial em vídeo (YouTube)</span>
           </a>
           <a href="https://apresentacao-pesquisai.vercel.app/" target="_blank" rel="noopener" class="footer-link">
             <svg viewBox="0 0 16 16"><path d="M2 3h12v8H2z M6 13h4 M8 11v2"/></svg>
-            Apresentação interativa
+            <span data-i18n="foot.l2">Apresentação interativa</span>
           </a>
           <a href="https://github.com/gustavobraga-byte/PesquisAI" target="_blank" rel="noopener" class="footer-link">
             <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            Código fonte no GitHub
+            <span data-i18n="foot.l3">Código fonte no GitHub</span>
           </a>
           <a href="https://colab.research.google.com/github/gustavobraga-byte/PesquisAI/blob/main/PesquisAI.ipynb" target="_blank" rel="noopener" class="footer-link">
             <svg viewBox="0 0 16 16"><path d="M2 13h12M9 3l3 3-3 3M14 6H5a3 3 0 0 0-3 3v1"/></svg>
-            Abrir no Google Colab
+            <span data-i18n="foot.l4">Abrir no Google Colab</span>
           </a>
           <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/MANUAL.md" target="_blank" rel="noopener" class="footer-link">
             <svg viewBox="0 0 16 16"><path d="M3 2h6l4 4v8H3z M9 2v4h4 M3 13h10 M3 10h10"/></svg>
-            Manual completo
+            <span data-i18n="foot.l5">Manual completo</span>
           </a>
           <a href="https://github.com/gustavobraga-byte/PesquisAI/blob/main/AGENTS.md" target="_blank" rel="noopener" class="footer-link">
             <svg viewBox="0 0 16 16"><path d="M3 2h6l4 4v8H3z M9 2v4h4 M3 13h10 M3 10h10"/></svg>
-            Diretrizes do agente
+            <span data-i18n="foot.l6">Diretrizes do agente</span>
           </a>
           <a href="mailto:gustavo.braga@ufv.br" class="footer-link">
             <svg viewBox="0 0 16 16"><path d="M2 4l6 5 6-5 M2 4h12v8H2z"/></svg>
-            Contato por email
+            <span data-i18n="foot.l7">Contato por email</span>
           </a>
         </div>
       </div>
@@ -1639,10 +1688,11 @@ Verificar autenticidade em: http://sisppg.ufv.br</p>
 </footer>
 
 <!-- ─── Back to top ─────────────────────────────────────── -->
-<button class="back-to-top" id="backToTop" type="button" aria-label="Voltar ao topo">
+<button class="back-to-top" id="backToTop" type="button" aria-label="Voltar ao topo" data-i18n-attr="top.aria">
   <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5"/></svg>
 </button>
 
+<script src="i18n.js" defer></script>
 <script src="site.js" defer></script>
 
 </body>
